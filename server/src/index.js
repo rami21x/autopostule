@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+const authRoutes = require('./routes/auth');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -13,6 +15,9 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+// Routes
+app.use('/auth', authRoutes);
 
 // Error handling global
 app.use((err, req, res, next) => {
