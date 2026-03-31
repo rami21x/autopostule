@@ -70,11 +70,21 @@ function OffreCard({ item, onClick }) {
   );
 }
 
+// Charger les resultats depuis sessionStorage au montage
+function loadSavedResults() {
+  try {
+    const saved = sessionStorage.getItem('searchResults');
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return null;
+}
+
 export default function RecherchePage() {
-  const [entreprises, setEntreprises] = useState([]);
-  const [offres, setOffres] = useState([]);
+  const saved = loadSavedResults();
+  const [entreprises, setEntreprises] = useState(saved?.entreprises || []);
+  const [offres, setOffres] = useState(saved?.offres || []);
   const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [searched, setSearched] = useState(!!saved);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -84,9 +94,16 @@ export default function RecherchePage() {
 
     try {
       const res = await api.post('/search/launch');
-      setEntreprises(res.data.entreprises || []);
-      setOffres(res.data.offres || []);
+      const newEntreprises = res.data.entreprises || [];
+      const newOffres = res.data.offres || [];
+      setEntreprises(newEntreprises);
+      setOffres(newOffres);
       setSearched(true);
+      // Persister les resultats
+      sessionStorage.setItem('searchResults', JSON.stringify({
+        entreprises: newEntreprises,
+        offres: newOffres,
+      }));
     } catch (err) {
       const message = err.response?.data?.error || 'Erreur lors de la recherche.';
       setError(message);
