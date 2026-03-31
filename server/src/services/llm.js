@@ -134,4 +134,172 @@ Préférences :
   return JSON.parse(jsonMatch[0]);
 }
 
-module.exports = { extractProfileFromCV, searchCompaniesAndOffers };
+const ANALYSE_PROMPT = `Tu es un expert en recrutement et en coaching de candidature en France. On te donne le profil d'un étudiant et une entreprise ou offre cible. Tu dois analyser la correspondance entre les deux et proposer des améliorations concrètes.
+
+Retourne UNIQUEMENT un JSON valide avec le format suivant :
+
+{
+  "score_detaille": {
+    "competences": 75,
+    "experience": 60,
+    "formation": 80,
+    "localisation": 90,
+    "global": 76
+  },
+  "points_forts": [
+    "Description d'un point fort du profil par rapport à cette cible (1 phrase)"
+  ],
+  "lacunes": [
+    "Description d'une lacune identifiée (1 phrase)"
+  ],
+  "suggestions_generales": [
+    {
+      "categorie": "CV" | "Compétences" | "Expérience" | "Formation" | "Présentation",
+      "titre": "Titre court de la suggestion",
+      "description": "Explication détaillée de ce qu'il faut améliorer et comment (2-3 phrases)",
+      "priorite": "haute" | "moyenne" | "basse"
+    }
+  ],
+  "suggestions_specifiques": [
+    {
+      "categorie": "Vocabulaire" | "Projet à mentionner" | "Technologie" | "Culture d'entreprise" | "Actualité",
+      "titre": "Titre court de la suggestion spécifique à cette entreprise",
+      "description": "Conseil adapté spécifiquement à cette entreprise (2-3 phrases)",
+      "priorite": "haute" | "moyenne" | "basse"
+    }
+  ],
+  "infos_entreprise": {
+    "description": "Description de l'entreprise (2-3 phrases)",
+    "valeurs": ["valeur1", "valeur2"],
+    "stack_technique": ["tech1", "tech2"],
+    "actualites": "Une actualité récente pertinente de l'entreprise (1 phrase, ou null)",
+    "conseil_approche": "Comment approcher cette entreprise spécifiquement (1-2 phrases)"
+  }
+}
+
+Règles :
+- Propose au moins 3 suggestions générales et 3 suggestions spécifiques.
+- Les suggestions doivent être concrètes et actionnables, pas des conseils génériques.
+- Les scores détaillés sont sur 100.
+- Adapte les suggestions spécifiques à l'entreprise réelle ciblée.
+- Retourne UNIQUEMENT le JSON, rien d'autre.`;
+
+async function analyzeProfileVsTarget(profile, target) {
+  const profileSummary = `
+Étudiant : ${profile.first_name} ${profile.last_name}
+Ville : ${profile.city || 'Non précisée'}
+Compétences techniques : ${(profile.skills || []).join(', ') || 'Non précisées'}
+Soft skills : ${(profile.soft_skills || []).join(', ') || 'Non précisés'}
+Formations : ${JSON.stringify(profile.formations || [])}
+Expériences : ${JSON.stringify(profile.experiences || [])}`;
+
+  const targetSummary = target.type === 'entreprise'
+    ? `Entreprise ciblée :
+- Nom : ${target.nom}
+- Secteur : ${target.secteur}
+- Ville : ${target.ville}
+- Taille : ${target.taille}
+- Description : ${target.description}
+- Contact cible : ${target.contact_cible}
+- Type : Candidature spontanée`
+    : `Offre ciblée :
+- Titre : ${target.titre}
+- Entreprise : ${target.entreprise}
+- Ville : ${target.ville}
+- Type de contrat : ${target.type_contrat}
+- Description : ${target.description}
+- Compétences requises : ${(target.competences_requises || []).join(', ')}
+- Type : Réponse à une offre`;
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 4000,
+    messages: [
+      {
+        role: 'user',
+        content: `${ANALYSE_PROMPT}\n\nProfil de l'étudiant :\n${profileSummary}\n\n${targetSummary}`,
+      },
+    ],
+  });
+
+  const responseText = message.content[0].text;
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('Le LLM n\'a pas retourné de JSON valide');
+  }
+
+  return JSON.parse(jsonMatch[0]);
+}
+
+const LETTRE_PROMPT = `Tu es un expert en rédaction de lettres de motivation pour des étudiants français en recherche d'alternance ou de stage. Tu dois rédiger une lettre de motivation personnalisée, professionnelle et convaincante.
+
+La lettre doit :
+- Faire entre 250 et 400 mots
+- Être structurée en 3-4 paragraphes :
+  1. Accroche : pourquoi cette entreprise spécifiquement (montrer qu'on a fait ses recherches)
+  2. Parcours : mettre en valeur les compétences et expériences pertinentes pour ce poste
+  3. Adéquation : ce que l'étudiant apportera concrètement à l'entreprise
+  4. Conclusion : disponibilités, motivation, appel à l'action
+- Être personnalisée pour cette entreprise spécifique (pas de lettre générique)
+- Mentionner des éléments concrets du profil de l'étudiant
+- Utiliser un ton professionnel mais dynamique, adapté à un étudiant
+- Ne PAS commencer par "Madame, Monsieur" ni terminer par les formules classiques trop longues
+- Commencer directement par l'accroche
+- Terminer par une phrase courte et percutante
+
+Retourne UNIQUEMENT un JSON valide :
+{
+  "objet": "Objet de la lettre (ex: Candidature en alternance - Développeur Full-Stack)",
+  "contenu": "Le texte complet de la lettre de motivation",
+  "points_cles_utilises": ["Point clé du profil utilisé dans la lettre"],
+  "ton": "Description du ton adopté (1 phrase)"
+}
+
+Retourne UNIQUEMENT le JSON, rien d'autre.`;
+
+async function generateCoverLetter(profile, target, analyse) {
+  const profileSummary = `
+Étudiant : ${profile.first_name} ${profile.last_name}
+Ville : ${profile.city || 'Non précisée'}
+Compétences techniques : ${(profile.skills || []).join(', ') || 'Non précisées'}
+Soft skills : ${(profile.soft_skills || []).join(', ') || 'Non précisés'}
+Formations : ${JSON.stringify(profile.formations || [])}
+Expériences : ${JSON.stringify(profile.experiences || [])}`;
+
+  const targetSummary = target.type === 'entreprise'
+    ? `Entreprise : ${target.nom} (${target.secteur}, ${target.ville}, ${target.taille})
+Description : ${target.description}
+Pourquoi postuler : ${target.pourquoi_postuler || ''}`
+    : `Offre : ${target.titre} chez ${target.entreprise} (${target.ville})
+Type : ${target.type_contrat}
+Description : ${target.description}
+Compétences demandées : ${(target.competences_requises || []).join(', ')}`;
+
+  const analyseSummary = analyse ? `
+Points forts identifiés : ${(analyse.points_forts || []).join('; ')}
+Infos entreprise : ${analyse.infos_entreprise?.description || ''}
+Valeurs : ${(analyse.infos_entreprise?.valeurs || []).join(', ')}
+Stack technique : ${(analyse.infos_entreprise?.stack_technique || []).join(', ')}
+Conseil d'approche : ${analyse.infos_entreprise?.conseil_approche || ''}` : '';
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 3000,
+    messages: [
+      {
+        role: 'user',
+        content: `${LETTRE_PROMPT}\n\nProfil :\n${profileSummary}\n\nCible :\n${targetSummary}\n${analyseSummary}`,
+      },
+    ],
+  });
+
+  const responseText = message.content[0].text;
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('Le LLM n\'a pas retourné de JSON valide');
+  }
+
+  return JSON.parse(jsonMatch[0]);
+}
+
+module.exports = { extractProfileFromCV, searchCompaniesAndOffers, analyzeProfileVsTarget, generateCoverLetter };
