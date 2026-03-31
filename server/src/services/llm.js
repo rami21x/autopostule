@@ -302,4 +302,33 @@ Conseil d'approche : ${analyse.infos_entreprise?.conseil_approche || ''}` : '';
   return JSON.parse(jsonMatch[0]);
 }
 
-module.exports = { extractProfileFromCV, searchCompaniesAndOffers, analyzeProfileVsTarget, generateCoverLetter };
+async function generateRelanceMessage(profile, candidature) {
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages: [
+      {
+        role: 'user',
+        content: `Tu es un assistant spécialisé en recherche d'alternance. Rédige un court message de relance (5-8 phrases max) pour un étudiant qui a postulé et n'a pas eu de réponse.
+
+Étudiant : ${profile.first_name || ''} ${profile.last_name || ''}
+Entreprise : ${candidature.company_name}
+Poste : ${candidature.job_title}
+Date de candidature : ${new Date(candidature.created_at).toLocaleDateString('fr-FR')}
+
+Le message doit être :
+- Poli et professionnel mais pas trop formel
+- Court et direct
+- Rappeler la candidature sans être insistant
+- Montrer la motivation sans désespoir
+- Proposer un échange ou un entretien
+
+Retourne UNIQUEMENT le texte du message, sans guillemets ni formatage.`,
+      },
+    ],
+  });
+
+  return message.content[0].text;
+}
+
+module.exports = { extractProfileFromCV, searchCompaniesAndOffers, analyzeProfileVsTarget, generateCoverLetter, generateRelanceMessage };

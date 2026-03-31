@@ -7,6 +7,7 @@ const profileRoutes = require('./routes/profile');
 const searchRoutes = require('./routes/search');
 const analyseRoutes = require('./routes/analyse');
 const lettreRoutes = require('./routes/lettre');
+const candidaturesRoutes = require('./routes/candidatures');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,6 +27,7 @@ app.use('/profile', profileRoutes);
 app.use('/search', searchRoutes);
 app.use('/analyse', analyseRoutes);
 app.use('/lettre', lettreRoutes);
+app.use('/candidatures', candidaturesRoutes);
 
 // Error handling global
 app.use((err, req, res, next) => {
