@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+const session = require('express-session');
 require('dotenv').config();
 
+const passport = require('./config/passport');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const searchRoutes = require('./routes/search');
@@ -15,6 +17,14 @@ const PORT = process.env.PORT || 3001;
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 5 * 60 * 1000 } // 5 min (only used during OAuth handshake)
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Health check
 app.get('/health', (req, res) => {

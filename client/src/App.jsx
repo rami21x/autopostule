@@ -8,14 +8,16 @@ import RecherchePage from './pages/RecherchePage';
 import AnalysePage from './pages/AnalysePage';
 import LettrePage from './pages/LettrePage';
 import SuiviPage from './pages/SuiviPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Route publique */}
+          {/* Routes publiques */}
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
           {/* Routes protegees avec layout */}
           <Route
