@@ -1,14 +1,13 @@
 const express = require('express');
 const pool = require('../db/pool');
 const authMiddleware = require('../middleware/auth');
-const { searchCompaniesAndOffers } = require('../services/llm');
+const { searchCompaniesAndOffers, searchMoreResults } = require('../services/llm');
 
 const router = express.Router();
 
-// POST /search/launch — Lancer une recherche intelligente
+// POST /search/launch — Lancer une recherche intelligente (3 axes)
 router.post('/launch', authMiddleware, async (req, res) => {
   try {
-    // Récupérer le profil
     const profileResult = await pool.query(
       'SELECT * FROM profiles WHERE user_id = $1',
       [req.user.id]
@@ -20,7 +19,6 @@ router.post('/launch', authMiddleware, async (req, res) => {
       });
     }
 
-    // Récupérer les préférences
     const preferencesResult = await pool.query(
       'SELECT * FROM preferences WHERE user_id = $1',
       [req.user.id]
@@ -29,7 +27,6 @@ router.post('/launch', authMiddleware, async (req, res) => {
     const profile = profileResult.rows[0];
     const preferences = preferencesResult.rows[0] || null;
 
-    // Parser les formations et experiences si nécessaire
     if (typeof profile.formations === 'string') {
       profile.formations = JSON.parse(profile.formations);
     }
@@ -37,17 +34,58 @@ router.post('/launch', authMiddleware, async (req, res) => {
       profile.experiences = JSON.parse(profile.experiences);
     }
 
-    // Appel LLM
     const results = await searchCompaniesAndOffers(profile, preferences);
 
     res.json({
       message: 'Recherche terminée',
-      entreprises: results.entreprises || [],
-      offres: results.offres || [],
+      entreprises: results.entreprises || { exact: [], connexe: [], profil: [] },
+      offres: results.offres || { exact: [], connexe: [], profil: [] },
     });
   } catch (err) {
     console.error('Erreur recherche :', err);
     res.status(500).json({ error: `Erreur lors de la recherche: ${err.message}` });
+  }
+});
+
+// POST /search/more — Charger plus de résultats
+router.post('/more', authMiddleware, async (req, res) => {
+  const { existingNames } = req.body;
+
+  try {
+    const profileResult = await pool.query(
+      'SELECT * FROM profiles WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    if (profileResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Profil non trouvé' });
+    }
+
+    const preferencesResult = await pool.query(
+      'SELECT * FROM preferences WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    const profile = profileResult.rows[0];
+    const preferences = preferencesResult.rows[0] || null;
+
+    if (typeof profile.formations === 'string') {
+      profile.formations = JSON.parse(profile.formations);
+    }
+    if (typeof profile.experiences === 'string') {
+      profile.experiences = JSON.parse(profile.experiences);
+    }
+
+    const results = await searchMoreResults(profile, preferences, existingNames || []);
+
+    res.json({
+      message: 'Résultats supplémentaires chargés',
+      entreprises: results.entreprises || { exact: [], connexe: [], profil: [] },
+      offres: results.offres || { exact: [], connexe: [], profil: [] },
+    });
+  } catch (err) {
+    console.error('Erreur search more :', err);
+    res.status(500).json({ error: `Erreur lors du chargement: ${err.message}` });
   }
 });
 

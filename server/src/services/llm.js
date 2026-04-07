@@ -58,49 +58,73 @@ async function extractProfileFromCV(cvText) {
   return JSON.parse(jsonMatch[0]);
 }
 
-const SEARCH_PROMPT = `Tu es un assistant spécialisé dans la recherche d'alternance et de stage en France. À partir du profil d'un étudiant et de ses préférences, tu dois identifier des entreprises et des offres pertinentes.
+const SEARCH_PROMPT = `Tu es un assistant spécialisé dans la recherche d'alternance et de stage en France. À partir du profil d'un étudiant et de ses préférences, tu dois identifier des entreprises (candidature spontanée) et des offres (postes existants) pertinentes.
+
+Tu dois catégoriser les résultats en 3 axes :
+- AXE 1 "exact" : correspond exactement aux préférences (même secteur, même type de poste, même ville ou région)
+- AXE 2 "connexe" : en lien avec les préférences mais pas le poste exact (même domaine large, compétences transférables, ville proche ou autre poste dans le même secteur)
+- AXE 3 "profil" : basé uniquement sur le profil/CV de l'étudiant (ses compétences et expériences), indépendamment des préférences de poste. Même type de contrat souhaité mais pas forcément dans la même ville ni le même secteur.
 
 Tu dois retourner UNIQUEMENT un JSON valide, sans aucun texte avant ou après, avec le format suivant :
 
 {
-  "entreprises": [
-    {
-      "nom": "Nom de l'entreprise",
-      "secteur": "Secteur d'activité",
-      "ville": "Ville",
-      "taille": "PME / ETI / Grande entreprise / Startup",
-      "description": "Pourquoi cette entreprise correspond au profil (2-3 phrases)",
-      "pourquoi_postuler": "Argument clé pour motiver la candidature spontanée",
-      "score": 85,
-      "contact_cible": "Type de contact à cibler (ex: RH, CTO, responsable technique)",
-      "source": "spontanee"
-    }
-  ],
-  "offres": [
-    {
-      "titre": "Titre du poste",
-      "entreprise": "Nom de l'entreprise",
-      "ville": "Ville",
-      "type_contrat": "Alternance / Stage",
-      "description": "Description courte du poste et pourquoi ça matche",
-      "competences_requises": ["comp1", "comp2"],
-      "score": 78,
-      "source": "offre"
-    }
-  ]
+  "entreprises": {
+    "exact": [
+      {
+        "nom": "Nom de l'entreprise",
+        "secteur": "Secteur d'activité",
+        "ville": "Ville",
+        "taille": "PME / ETI / Grande entreprise / Startup",
+        "description": "Pourquoi cette entreprise correspond au profil (2-3 phrases)",
+        "pourquoi_postuler": "Argument clé pour motiver la candidature spontanée",
+        "score": 85,
+        "contact_cible": "Type de contact à cibler (ex: RH, CTO, responsable technique)",
+        "source": "spontanee",
+        "axe": "exact"
+      }
+    ],
+    "connexe": [],
+    "profil": []
+  },
+  "offres": {
+    "exact": [
+      {
+        "titre": "Titre du poste",
+        "entreprise": "Nom de l'entreprise",
+        "ville": "Ville",
+        "type_contrat": "Alternance / Stage",
+        "description": "Description courte du poste et pourquoi ça matche",
+        "competences_requises": ["comp1", "comp2"],
+        "score": 78,
+        "source": "offre",
+        "axe": "exact"
+      }
+    ],
+    "connexe": [],
+    "profil": []
+  }
 }
 
 Règles :
-- Génère exactement 5 entreprises pour candidature spontanée et 5 offres potentielles.
+- Pour chaque axe, génère 3 entreprises et 3 offres (total 9 entreprises + 9 offres).
 - Le score est sur 100, basé sur la correspondance entre le profil et l'entreprise/offre.
 - Les entreprises doivent être des entreprises RÉELLES existant en France.
-- Priorise la localisation demandée par l'étudiant.
-- Pour les candidatures spontanées, cible des entreprises qui recrutent dans le secteur même si elles n'ont pas d'offre publiée.
+- AXE 1 (exact) : scores entre 75-100, correspond parfaitement aux préférences.
+- AXE 2 (connexe) : scores entre 50-80, domaine lié mais pas identique.
+- AXE 3 (profil) : scores entre 40-75, basé sur les compétences CV, peut être dans un autre secteur/ville.
 - Adapte les résultats au niveau d'études et aux compétences du profil.
 - Retourne UNIQUEMENT le JSON, rien d'autre.`;
 
-async function searchCompaniesAndOffers(profile, preferences) {
-  const profileSummary = `
+const SEARCH_MORE_PROMPT = `Tu es un assistant spécialisé dans la recherche d'alternance et de stage en France. L'étudiant a déjà reçu des résultats et veut en voir davantage. Génère de NOUVEAUX résultats différents des précédents.
+
+Tu dois retourner UNIQUEMENT un JSON valide avec le même format que précédemment, en catégorisant en 3 axes (exact, connexe, profil). Génère 2 nouvelles entreprises et 2 nouvelles offres par axe (total 6 entreprises + 6 offres).
+
+Les entreprises/offres déjà proposées (à NE PAS répéter) : {existants}
+
+Mêmes règles que la recherche initiale. Retourne UNIQUEMENT le JSON, rien d'autre.`;
+
+function buildProfileSummary(profile, preferences) {
+  return `
 Étudiant : ${profile.first_name} ${profile.last_name}
 Ville : ${profile.city || 'Non précisée'}
 Compétences techniques : ${(profile.skills || []).join(', ') || 'Non précisées'}
@@ -113,14 +137,42 @@ Préférences :
 - Type de contrat : ${preferences?.contract_type || 'Alternance ou stage'}
 - Localisation : ${preferences?.location || 'France entière'}
 - Mots-clés : ${(preferences?.keywords || []).join(', ') || 'Aucun'}`;
+}
+
+async function searchCompaniesAndOffers(profile, preferences) {
+  const profileSummary = buildProfileSummary(profile, preferences);
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 4000,
+    max_tokens: 8000,
     messages: [
       {
         role: 'user',
         content: `${SEARCH_PROMPT}\n\nVoici le profil de l'étudiant :\n${profileSummary}`,
+      },
+    ],
+  });
+
+  const responseText = message.content[0].text;
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('Le LLM n\'a pas retourné de JSON valide');
+  }
+
+  return JSON.parse(jsonMatch[0]);
+}
+
+async function searchMoreResults(profile, preferences, existingNames) {
+  const profileSummary = buildProfileSummary(profile, preferences);
+  const prompt = SEARCH_MORE_PROMPT.replace('{existants}', existingNames.join(', '));
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 8000,
+    messages: [
+      {
+        role: 'user',
+        content: `${prompt}\n\nVoici le profil de l'étudiant :\n${profileSummary}`,
       },
     ],
   });
@@ -412,4 +464,4 @@ async function generateExperienceDescription(poste, entreprise, periode, sector)
   return JSON.parse(jsonMatch[0]);
 }
 
-module.exports = { extractProfileFromCV, searchCompaniesAndOffers, analyzeProfileVsTarget, generateCoverLetter, generateRelanceMessage, suggestSkillsForDomain, generateExperienceDescription };
+module.exports = { extractProfileFromCV, searchCompaniesAndOffers, searchMoreResults, analyzeProfileVsTarget, generateCoverLetter, generateRelanceMessage, suggestSkillsForDomain, generateExperienceDescription };
