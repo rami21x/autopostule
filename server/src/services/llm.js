@@ -331,4 +331,85 @@ Retourne UNIQUEMENT le texte du message, sans guillemets ni formatage.`,
   return message.content[0].text;
 }
 
-module.exports = { extractProfileFromCV, searchCompaniesAndOffers, analyzeProfileVsTarget, generateCoverLetter, generateRelanceMessage };
+const SUGGEST_SKILLS_PROMPT = `Tu es un expert en recrutement et en compétences professionnelles en France. À partir du domaine/secteur recherché par un étudiant et de ses informations (formations, expériences), tu dois suggérer des compétences techniques et soft skills pertinentes.
+
+Tu dois aussi analyser les profils recherchés dans ce domaine et proposer des compétences basées sur ce que les recruteurs attendent réellement.
+
+Retourne UNIQUEMENT un JSON valide :
+{
+  "skills": ["compétence technique 1", "compétence technique 2", ...],
+  "soft_skills": ["soft skill 1", "soft skill 2", ...],
+  "skills_tendance": ["compétence émergente 1", "compétence émergente 2"],
+  "conseil": "Un conseil court (1-2 phrases) sur les compétences les plus demandées dans ce secteur"
+}
+
+Règles :
+- Propose 8-12 compétences techniques pertinentes pour le secteur.
+- Propose 5-8 soft skills valorisées dans ce secteur.
+- Propose 3-5 compétences tendance/émergentes que les recruteurs recherchent de plus en plus.
+- Base-toi sur les offres d'emploi réelles en France pour ce secteur.
+- Adapte les suggestions au niveau étudiant (alternance/stage).
+- Retourne UNIQUEMENT le JSON, rien d'autre.`;
+
+async function suggestSkillsForDomain(sector, formations, experiences) {
+  const context = `
+Secteur recherché : ${sector}
+Formations : ${JSON.stringify(formations || [])}
+Expériences : ${JSON.stringify(experiences || [])}`;
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 2000,
+    messages: [
+      {
+        role: 'user',
+        content: `${SUGGEST_SKILLS_PROMPT}\n\n${context}`,
+      },
+    ],
+  });
+
+  const responseText = message.content[0].text;
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('Le LLM n\'a pas retourné de JSON valide');
+  }
+
+  return JSON.parse(jsonMatch[0]);
+}
+
+const GENERATE_DESCRIPTION_PROMPT = `Tu es un expert en rédaction de CV en France. À partir des informations basiques d'une expérience professionnelle, tu dois rédiger une description professionnelle et percutante.
+
+Retourne UNIQUEMENT un JSON valide :
+{
+  "description": "Description professionnelle de l'expérience (2-4 phrases, action-oriented, avec des verbes d'action et si possible des résultats chiffrés)"
+}
+
+Règles :
+- Utilise des verbes d'action (Développé, Géré, Mis en place, Contribué, Optimisé, etc.)
+- Adapte le ton au secteur et au poste.
+- Si le secteur est technique, mentionne des outils/technologies probables.
+- Reste réaliste pour un étudiant en alternance/stage.
+- Retourne UNIQUEMENT le JSON, rien d'autre.`;
+
+async function generateExperienceDescription(poste, entreprise, periode, sector) {
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 500,
+    messages: [
+      {
+        role: 'user',
+        content: `${GENERATE_DESCRIPTION_PROMPT}\n\nPoste : ${poste}\nEntreprise : ${entreprise}\nPériode : ${periode}\nSecteur de l'étudiant : ${sector || 'Non précisé'}`,
+      },
+    ],
+  });
+
+  const responseText = message.content[0].text;
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('Le LLM n\'a pas retourné de JSON valide');
+  }
+
+  return JSON.parse(jsonMatch[0]);
+}
+
+module.exports = { extractProfileFromCV, searchCompaniesAndOffers, analyzeProfileVsTarget, generateCoverLetter, generateRelanceMessage, suggestSkillsForDomain, generateExperienceDescription };

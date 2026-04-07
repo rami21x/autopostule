@@ -3,7 +3,7 @@ const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const pool = require('../db/pool');
 const authMiddleware = require('../middleware/auth');
-const { extractProfileFromCV } = require('../services/llm');
+const { extractProfileFromCV, suggestSkillsForDomain, generateExperienceDescription } = require('../services/llm');
 
 const router = express.Router();
 
@@ -150,6 +150,93 @@ router.post('/preferences', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Erreur préférences :', err.message);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /profile/suggest-skills — IA suggère des compétences pour un domaine
+router.post('/suggest-skills', authMiddleware, async (req, res) => {
+  const { sector, formations, experiences } = req.body;
+
+  if (!sector) {
+    return res.status(400).json({ error: 'Le secteur est requis' });
+  }
+
+  try {
+    const suggestions = await suggestSkillsForDomain(sector, formations, experiences);
+    res.json(suggestions);
+  } catch (err) {
+    console.error('Erreur suggest-skills :', err.message);
+    res.status(500).json({ error: 'Erreur lors de la suggestion de compétences' });
+  }
+});
+
+// POST /profile/generate-description — IA génère une description d'expérience
+router.post('/generate-description', authMiddleware, async (req, res) => {
+  const { poste, entreprise, periode, sector } = req.body;
+
+  if (!poste || !entreprise) {
+    return res.status(400).json({ error: 'Le poste et l\'entreprise sont requis' });
+  }
+
+  try {
+    const result = await generateExperienceDescription(poste, entreprise, periode, sector);
+    res.json(result);
+  } catch (err) {
+    console.error('Erreur generate-description :', err.message);
+    res.status(500).json({ error: 'Erreur lors de la génération de la description' });
+  }
+});
+
+// POST /profile/cv-builder — Sauvegarder un CV construit manuellement
+router.post('/cv-builder', authMiddleware, async (req, res) => {
+  const { first_name, last_name, phone, city, formations, experiences, skills, soft_skills } = req.body;
+
+  if (!first_name || !last_name) {
+    return res.status(400).json({ error: 'Le prénom et le nom sont requis' });
+  }
+
+  try {
+    // 1. Stocker dans cv_data avec marqueur
+    const rawText = '[CV construit manuellement]';
+    const extractedData = { first_name, last_name, phone, city, skills, soft_skills, formations, experiences };
+
+    await pool.query(
+      `INSERT INTO cv_data (user_id, raw_text, extracted_data)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id)
+       DO UPDATE SET raw_text = $2, extracted_data = $3, created_at = NOW()`,
+      [req.user.id, rawText, JSON.stringify(extractedData)]
+    );
+
+    // 2. Mettre à jour le profil
+    await pool.query(
+      `INSERT INTO profiles (user_id, first_name, last_name, phone, city, skills, soft_skills, formations, experiences)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (user_id)
+       DO UPDATE SET
+         first_name = $2, last_name = $3, phone = $4, city = $5,
+         skills = $6, soft_skills = $7, formations = $8, experiences = $9,
+         updated_at = NOW()`,
+      [
+        req.user.id,
+        first_name,
+        last_name,
+        phone || null,
+        city || null,
+        skills || [],
+        soft_skills || [],
+        JSON.stringify(formations || []),
+        JSON.stringify(experiences || []),
+      ]
+    );
+
+    res.json({
+      message: 'CV construit et sauvegardé avec succès',
+      profile: extractedData,
+    });
+  } catch (err) {
+    console.error('Erreur cv-builder :', err.message);
+    res.status(500).json({ error: 'Erreur lors de la sauvegarde du CV' });
   }
 });
 

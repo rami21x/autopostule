@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import CvBuilder from '../components/CvBuilder';
 
 const STEPS = [
   { id: 1, label: 'Préférences', description: 'Que recherchez-vous ?' },
@@ -19,6 +20,7 @@ export default function ProfilPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
+  const [builderMode, setBuilderMode] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -379,16 +381,9 @@ export default function ProfilPage() {
         </div>
       )}
 
-      {/* ========= STEP 2 : Upload CV ========= */}
+      {/* ========= STEP 2 : Upload CV ou Builder ========= */}
       {currentStep === 2 && (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 animate-fadeIn">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Soumettez votre CV</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Notre IA va analyser ton CV et extraire automatiquement tes compétences, formations et expériences.
-            </p>
-          </div>
-
           {/* Preferences summary */}
           {preferences?.sector && (
             <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
@@ -407,73 +402,142 @@ export default function ProfilPage() {
             </div>
           )}
 
-          {cvUploaded && (
-            <div className="mb-4 bg-green-50 border border-green-100 text-green-700 text-sm rounded-xl px-4 py-3 flex items-center gap-2">
-              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              CV uploadé le {new Date(cvUploadedAt).toLocaleDateString('fr-FR', {
-                day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
-              })}
-            </div>
-          )}
-
-          <label
-            htmlFor="cv-upload"
-            className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer block transition-all duration-300 ${
-              uploading
-                ? 'border-blue-300 bg-blue-50'
-                : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'
-            }`}
-          >
-            {uploading ? (
-              <div className="flex flex-col items-center gap-3">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                <p className="text-sm text-blue-600 font-semibold">Analyse en cours...</p>
-                <p className="text-xs text-gray-400">L'IA extrait les informations de ton CV, cela peut prendre quelques secondes</p>
+          {/* Mode toggle: Upload vs Builder */}
+          {!builderMode ? (
+            <>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Soumettez votre CV</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Notre IA va analyser ton CV et extraire automatiquement tes compétences, formations et expériences.
+                </p>
               </div>
-            ) : (
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
-                  <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+
+              {cvUploaded && (
+                <div className="mb-4 bg-green-50 border border-green-100 text-green-700 text-sm rounded-xl px-4 py-3 flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
+                  CV uploadé le {new Date(cvUploadedAt).toLocaleDateString('fr-FR', {
+                    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                  })}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">
-                    {cvUploaded ? 'Remplacer mon CV' : 'Clique ou glisse ton CV ici'}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">PDF uniquement, 5 Mo max</p>
+              )}
+
+              <label
+                htmlFor="cv-upload"
+                className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer block transition-all duration-300 ${
+                  uploading
+                    ? 'border-blue-300 bg-blue-50'
+                    : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'
+                }`}
+              >
+                {uploading ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                    <p className="text-sm text-blue-600 font-semibold">Analyse en cours...</p>
+                    <p className="text-xs text-gray-400">L'IA extrait les informations de ton CV, cela peut prendre quelques secondes</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
+                      <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-700">
+                        {cvUploaded ? 'Remplacer mon CV' : 'Clique ou glisse ton CV ici'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">PDF uniquement, 5 Mo max</p>
+                    </div>
+                  </div>
+                )}
+              </label>
+              <input
+                ref={fileInputRef}
+                id="cv-upload"
+                type="file"
+                accept=".pdf"
+                onChange={handleUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+
+              {/* Divider + Builder option */}
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-4 text-gray-400">ou</span>
                 </div>
               </div>
-            )}
-          </label>
-          <input
-            ref={fileInputRef}
-            id="cv-upload"
-            type="file"
-            accept=".pdf"
-            onChange={handleUpload}
-            disabled={uploading}
-            className="hidden"
-          />
 
-          <div className="flex items-center gap-3 mt-6">
-            <button
-              onClick={() => setCurrentStep(1)}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
-            >
-              &larr; Retour aux préférences
-            </button>
-            {cvUploaded && profile && (
               <button
-                onClick={() => setCurrentStep(3)}
-                className="ml-auto bg-blue-600 text-white px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 transition-all cursor-pointer shadow-sm"
+                onClick={() => setBuilderMode(true)}
+                className="w-full border-2 border-dashed border-purple-200 rounded-2xl p-6 text-center cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 transition-all duration-300 group"
               >
-                Voir mon profil &rarr;
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                    <svg className="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-purple-700">Je n'ai pas de CV — Construire mon CV avec l'IA</p>
+                    <p className="text-xs text-gray-400 mt-1">L'IA t'aide à créer un CV professionnel avec des suggestions de compétences et des templates</p>
+                  </div>
+                </div>
               </button>
-            )}
-          </div>
+
+              <div className="flex items-center gap-3 mt-6">
+                <button
+                  onClick={() => setCurrentStep(1)}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                >
+                  &larr; Retour aux préférences
+                </button>
+                {cvUploaded && profile && (
+                  <button
+                    onClick={() => setCurrentStep(3)}
+                    className="ml-auto bg-blue-600 text-white px-6 py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 transition-all cursor-pointer shadow-sm"
+                  >
+                    Voir mon profil &rarr;
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* CV Builder mode */}
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Construire mon CV</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Remplis tes informations et l'IA te suggère des compétences et génère des descriptions pro.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setBuilderMode(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  J'ai un CV &rarr;
+                </button>
+              </div>
+
+              <CvBuilder
+                sector={preferences?.sector || prefForm.sector}
+                onComplete={(profileData) => {
+                  setProfile(profileData);
+                  setCvUploaded(true);
+                  setCvUploadedAt(new Date().toISOString());
+                  setSuccess('CV construit et sauvegardé avec succès !');
+                  setBuilderMode(false);
+                  setCurrentStep(3);
+                }}
+              />
+            </>
+          )}
         </div>
       )}
 
