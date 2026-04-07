@@ -283,31 +283,77 @@ Expériences : ${JSON.stringify(profile.experiences || [])}`;
   return JSON.parse(jsonMatch[0]);
 }
 
-const LETTRE_PROMPT = `Tu es un expert en rédaction de lettres de motivation pour des étudiants français en recherche d'alternance ou de stage. Tu dois rédiger une lettre de motivation personnalisée, professionnelle et convaincante.
+const LETTRE_PROMPT = `Tu es un expert en rédaction de lettres de motivation pour des étudiants français en recherche d'alternance ou de stage. Tu dois rédiger une lettre de motivation personnalisée, professionnelle et convaincante au FORMAT FORMEL français.
 
-La lettre doit :
-- Faire entre 250 et 400 mots
-- Être structurée en 3-4 paragraphes :
-  1. Accroche : pourquoi cette entreprise spécifiquement (montrer qu'on a fait ses recherches)
-  2. Parcours : mettre en valeur les compétences et expériences pertinentes pour ce poste
-  3. Adéquation : ce que l'étudiant apportera concrètement à l'entreprise
-  4. Conclusion : disponibilités, motivation, appel à l'action
-- Être personnalisée pour cette entreprise spécifique (pas de lettre générique)
-- Mentionner des éléments concrets du profil de l'étudiant
-- Utiliser un ton professionnel mais dynamique, adapté à un étudiant
-- Ne PAS commencer par "Madame, Monsieur" ni terminer par les formules classiques trop longues
-- Commencer directement par l'accroche
-- Terminer par une phrase courte et percutante
+La lettre DOIT respecter le format suivant :
+1. EN-TÊTE : Nom Prénom de l'expéditeur, adresse, téléphone, email (à gauche)
+2. DESTINATAIRE : Nom entreprise, adresse (à droite)
+3. LIEU ET DATE : "Ville, le [date du jour]"
+4. OBJET : Objet de la candidature
+5. FORMULE D'APPEL : "Madame, Monsieur,"
+6. CORPS de la lettre structuré en 4 paragraphes :
+   - Accroche : pourquoi cette entreprise spécifiquement, en utilisant les MOTS-CLÉS du poste/secteur
+   - Parcours : mettre en valeur les compétences et expériences DIRECTEMENT liées au poste. Faire des liens explicites entre chaque expérience et ce que l'entreprise recherche
+   - Adéquation : ce que l'étudiant apportera concrètement, en reprenant le vocabulaire du poste
+   - Conclusion : disponibilités, motivation, proposition d'entretien
+7. FORMULE DE POLITESSE : formule classique professionnelle
+8. SIGNATURE : Nom Prénom
 
 Retourne UNIQUEMENT un JSON valide :
 {
   "objet": "Objet de la lettre (ex: Candidature en alternance - Développeur Full-Stack)",
-  "contenu": "Le texte complet de la lettre de motivation",
-  "points_cles_utilises": ["Point clé du profil utilisé dans la lettre"],
+  "expediteur": {
+    "nom_prenom": "Prénom Nom",
+    "ville": "Ville",
+    "telephone": "Téléphone",
+    "email": "email (à générer si non fourni: prenom.nom@email.com)"
+  },
+  "destinataire": {
+    "entreprise": "Nom de l'entreprise",
+    "ville": "Ville de l'entreprise"
+  },
+  "date": "Ville, le JJ mois AAAA",
+  "accroche": "Paragraphe d'accroche (3-4 phrases)",
+  "parcours": "Paragraphe parcours et compétences (4-5 phrases, avec liens explicites entre expériences et poste)",
+  "adequation": "Paragraphe adéquation et apport (3-4 phrases)",
+  "conclusion": "Paragraphe conclusion (2-3 phrases avec proposition d'entretien)",
+  "formule_politesse": "Formule de politesse classique",
+  "mots_cles_utilises": ["mot-clé du poste intégré dans la lettre", ...],
+  "correspondances_experiences": [
+    {
+      "experience": "Nom de l'expérience du candidat",
+      "lien_poste": "En quoi cette expérience est pertinente pour le poste (1 phrase)"
+    }
+  ],
+  "points_cles_utilises": ["Point clé du profil utilisé"],
   "ton": "Description du ton adopté (1 phrase)"
 }
 
-Retourne UNIQUEMENT le JSON, rien d'autre.`;
+Règles :
+- La lettre doit faire entre 300 et 450 mots (corps uniquement, sans en-tête ni signature).
+- Intègre OBLIGATOIREMENT les mots-clés du poste/secteur dans le corps de la lettre.
+- Fais des liens EXPLICITES entre les expériences du candidat et ce que l'entreprise recherche.
+- Utilise un ton professionnel mais dynamique, adapté à un étudiant.
+- La lettre doit être personnalisée pour cette entreprise spécifique.
+- Retourne UNIQUEMENT le JSON, rien d'autre.`;
+
+const LETTRE_SECTION_PROMPT = `Tu es un expert en rédaction de lettres de motivation. On te demande de réécrire UNE SEULE section d'une lettre de motivation existante. La section à réécrire est "{section}".
+
+Contexte de la lettre :
+- Candidat : {candidat}
+- Cible : {cible}
+- Instructions de l'utilisateur : {instructions}
+
+Retourne UNIQUEMENT un JSON valide :
+{
+  "section": "Le texte réécrit de la section (paragraphe complet)"
+}
+
+Règles :
+- Ne réécris QUE la section demandée, pas toute la lettre.
+- Prends en compte les instructions de l'utilisateur si fournies.
+- Garde le même ton et le même style que le reste de la lettre.
+- Retourne UNIQUEMENT le JSON, rien d'autre.`;
 
 async function generateCoverLetter(profile, target, analyse) {
   const profileSummary = `
@@ -342,6 +388,30 @@ Conseil d'approche : ${analyse.infos_entreprise?.conseil_approche || ''}` : '';
         role: 'user',
         content: `${LETTRE_PROMPT}\n\nProfil :\n${profileSummary}\n\nCible :\n${targetSummary}\n${analyseSummary}`,
       },
+    ],
+  });
+
+  const responseText = message.content[0].text;
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('Le LLM n\'a pas retourné de JSON valide');
+  }
+
+  return JSON.parse(jsonMatch[0]);
+}
+
+async function regenerateLetterSection(section, candidat, cible, instructions) {
+  const prompt = LETTRE_SECTION_PROMPT
+    .replace('{section}', section)
+    .replace('{candidat}', candidat)
+    .replace('{cible}', cible)
+    .replace('{instructions}', instructions || 'Améliore cette section');
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages: [
+      { role: 'user', content: prompt },
     ],
   });
 
@@ -464,4 +534,4 @@ async function generateExperienceDescription(poste, entreprise, periode, sector)
   return JSON.parse(jsonMatch[0]);
 }
 
-module.exports = { extractProfileFromCV, searchCompaniesAndOffers, searchMoreResults, analyzeProfileVsTarget, generateCoverLetter, generateRelanceMessage, suggestSkillsForDomain, generateExperienceDescription };
+module.exports = { extractProfileFromCV, searchCompaniesAndOffers, searchMoreResults, analyzeProfileVsTarget, generateCoverLetter, regenerateLetterSection, generateRelanceMessage, suggestSkillsForDomain, generateExperienceDescription };

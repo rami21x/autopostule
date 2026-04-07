@@ -1,7 +1,7 @@
 const express = require('express');
 const pool = require('../db/pool');
 const authMiddleware = require('../middleware/auth');
-const { generateCoverLetter } = require('../services/llm');
+const { generateCoverLetter, regenerateLetterSection } = require('../services/llm');
 
 const router = express.Router();
 
@@ -43,6 +43,36 @@ router.post('/generate', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Erreur génération lettre :', err);
     res.status(500).json({ error: `Erreur lors de la génération: ${err.message}` });
+  }
+});
+
+// POST /lettre/regenerate-section — Régénérer une section de la lettre
+router.post('/regenerate-section', authMiddleware, async (req, res) => {
+  const { section, target, instructions } = req.body;
+
+  if (!section) {
+    return res.status(400).json({ error: 'La section à régénérer est requise' });
+  }
+
+  try {
+    const profileResult = await pool.query(
+      'SELECT * FROM profiles WHERE user_id = $1',
+      [req.user.id]
+    );
+
+    const profile = profileResult.rows[0];
+    const candidat = profile
+      ? `${profile.first_name} ${profile.last_name}, compétences: ${(profile.skills || []).join(', ')}`
+      : 'Étudiant';
+    const cible = target
+      ? `${target.nom || target.titre} - ${target.secteur || target.entreprise} (${target.ville})`
+      : 'Entreprise';
+
+    const result = await regenerateLetterSection(section, candidat, cible, instructions);
+    res.json(result);
+  } catch (err) {
+    console.error('Erreur regenerate-section :', err);
+    res.status(500).json({ error: 'Erreur lors de la régénération' });
   }
 });
 
