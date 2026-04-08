@@ -42,7 +42,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error('Erreur génération lettre :', err);
-    res.status(500).json({ error: `Erreur lors de la génération: ${err.message}` });
+    res.status(500).json({ error: 'Erreur lors de la génération. Réessaye.' });
   }
 });
 
@@ -125,7 +125,7 @@ router.post('/save', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error('Erreur sauvegarde lettre :', err);
-    res.status(500).json({ error: `Erreur lors de la sauvegarde: ${err.message}` });
+    res.status(500).json({ error: 'Erreur lors de la sauvegarde. Réessaye.' });
   }
 });
 

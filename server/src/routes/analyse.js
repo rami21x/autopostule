@@ -42,8 +42,8 @@ router.post('/', authMiddleware, async (req, res) => {
       analyse,
     });
   } catch (err) {
-    console.error('Erreur analyse :', err);
-    res.status(500).json({ error: `Erreur lors de l'analyse: ${err.message}` });
+    console.error('[Analyse] Error:', err.message);
+    res.status(500).json({ error: 'Erreur lors de l\'analyse. Réessaye.' });
   }
 });
 

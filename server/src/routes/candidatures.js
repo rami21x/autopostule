@@ -1,10 +1,28 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const pool = require('../db/pool');
 const authMiddleware = require('../middleware/auth');
 const { generateRelanceMessage } = require('../services/llm');
 const { sendCandidatureEmail, sendRelanceEmail, isEmailConfigured } = require('../services/email');
 
 const router = express.Router();
+
+// ── Helpers ──
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function isValidEmail(email) {
+  return typeof email === 'string' && EMAIL_REGEX.test(email) && email.length <= 254
+    && !email.includes('\n') && !email.includes('\r');
+}
+
+// Rate limiter pour l'envoi d'emails (20 par heure par IP)
+const emailLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: { error: 'Limite d\'emails atteinte. Réessaye plus tard.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // GET /candidatures — Liste des candidatures de l'utilisateur
 router.get('/', authMiddleware, async (req, res) => {
@@ -46,7 +64,7 @@ router.get('/', authMiddleware, async (req, res) => {
     res.json({ candidatures, email_configured: isEmailConfigured() });
   } catch (err) {
     console.error('Erreur GET candidatures :', err);
-    res.status(500).json({ error: `Erreur: ${err.message}` });
+    res.status(500).json({ error: 'Une erreur est survenue. Réessaye.' });
   }
 });
 
@@ -75,7 +93,7 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
     res.json({ candidature: result.rows[0] });
   } catch (err) {
     console.error('Erreur PUT statut :', err);
-    res.status(500).json({ error: `Erreur: ${err.message}` });
+    res.status(500).json({ error: 'Une erreur est survenue. Réessaye.' });
   }
 });
 
@@ -89,9 +107,25 @@ router.put('/:id', authMiddleware, async (req, res) => {
     const values = [];
     let idx = 1;
 
-    if (notes !== undefined) { fields.push(`notes = $${idx++}`); values.push(notes); }
-    if (contact_email !== undefined) { fields.push(`contact_email = $${idx++}`); values.push(contact_email); }
-    if (relance_delay_days !== undefined) { fields.push(`relance_delay_days = $${idx++}`); values.push(relance_delay_days); }
+    if (notes !== undefined) {
+      if (typeof notes !== 'string' || notes.length > 5000) {
+        return res.status(400).json({ error: 'Notes trop longues (max 5 000 caractères)' });
+      }
+      fields.push(`notes = $${idx++}`); values.push(notes);
+    }
+    if (contact_email !== undefined) {
+      if (contact_email && !isValidEmail(contact_email)) {
+        return res.status(400).json({ error: 'Email de contact invalide' });
+      }
+      fields.push(`contact_email = $${idx++}`); values.push(contact_email);
+    }
+    if (relance_delay_days !== undefined) {
+      const delay = parseInt(relance_delay_days, 10);
+      if (isNaN(delay) || delay < 1 || delay > 365) {
+        return res.status(400).json({ error: 'Délai de relance entre 1 et 365 jours' });
+      }
+      fields.push(`relance_delay_days = $${idx++}`); values.push(delay);
+    }
 
     if (fields.length === 0) {
       return res.status(400).json({ error: 'Rien à mettre à jour' });
@@ -114,17 +148,17 @@ router.put('/:id', authMiddleware, async (req, res) => {
     res.json({ candidature: result.rows[0] });
   } catch (err) {
     console.error('Erreur PUT candidature :', err);
-    res.status(500).json({ error: `Erreur: ${err.message}` });
+    res.status(500).json({ error: 'Une erreur est survenue. Réessaye.' });
   }
 });
 
 // POST /candidatures/:id/send-email — Envoyer la lettre par email
-router.post('/:id/send-email', authMiddleware, async (req, res) => {
+router.post('/:id/send-email', authMiddleware, emailLimiter, async (req, res) => {
   const { id } = req.params;
   const { to } = req.body;
 
-  if (!to) {
-    return res.status(400).json({ error: 'Adresse email du destinataire requise' });
+  if (!to || !isValidEmail(to)) {
+    return res.status(400).json({ error: 'Adresse email invalide' });
   }
 
   try {
@@ -184,7 +218,7 @@ router.post('/:id/send-email', authMiddleware, async (req, res) => {
     res.json({ message: 'Email envoyé avec succès', email_id: emailResult?.id });
   } catch (err) {
     console.error('Erreur envoi email :', err);
-    res.status(500).json({ error: `Erreur envoi email: ${err.message}` });
+    res.status(500).json({ error: 'Erreur lors de l\'envoi. Vérifie l\'adresse email et réessaye.' });
   }
 });
 
@@ -223,17 +257,20 @@ router.post('/:id/relance', authMiddleware, async (req, res) => {
     res.json({ relance: relanceResult.rows[0] });
   } catch (err) {
     console.error('Erreur génération relance :', err);
-    res.status(500).json({ error: `Erreur: ${err.message}` });
+    res.status(500).json({ error: 'Une erreur est survenue. Réessaye.' });
   }
 });
 
 // POST /candidatures/:id/send-relance — Envoyer la relance par email
-router.post('/:id/send-relance', authMiddleware, async (req, res) => {
+router.post('/:id/send-relance', authMiddleware, emailLimiter, async (req, res) => {
   const { id } = req.params;
   const { to, message } = req.body;
 
-  if (!to || !message) {
-    return res.status(400).json({ error: 'Adresse email et message requis' });
+  if (!to || !isValidEmail(to)) {
+    return res.status(400).json({ error: 'Adresse email invalide' });
+  }
+  if (!message || typeof message !== 'string' || message.length > 10000) {
+    return res.status(400).json({ error: 'Message requis (max 10 000 caractères)' });
   }
 
   try {
@@ -287,7 +324,7 @@ router.post('/:id/send-relance', authMiddleware, async (req, res) => {
     res.json({ message: 'Relance envoyée par email', email_id: emailResult?.id });
   } catch (err) {
     console.error('Erreur envoi relance email :', err);
-    res.status(500).json({ error: `Erreur envoi relance: ${err.message}` });
+    res.status(500).json({ error: 'Erreur lors de l\'envoi. Vérifie l\'adresse email et réessaye.' });
   }
 });
 
@@ -312,7 +349,7 @@ router.put('/:id/relance/sent', authMiddleware, async (req, res) => {
     res.json({ message: 'Relance marquée comme envoyée' });
   } catch (err) {
     console.error('Erreur relance sent :', err);
-    res.status(500).json({ error: `Erreur: ${err.message}` });
+    res.status(500).json({ error: 'Une erreur est survenue. Réessaye.' });
   }
 });
 
@@ -331,7 +368,7 @@ router.get('/:id/emails', authMiddleware, async (req, res) => {
     res.json({ emails: result.rows });
   } catch (err) {
     console.error('Erreur GET emails :', err);
-    res.status(500).json({ error: `Erreur: ${err.message}` });
+    res.status(500).json({ error: 'Une erreur est survenue. Réessaye.' });
   }
 });
 
@@ -365,7 +402,7 @@ router.get('/export/csv', authMiddleware, async (req, res) => {
     res.send('\uFEFF' + header + rows);
   } catch (err) {
     console.error('Erreur export CSV :', err);
-    res.status(500).json({ error: `Erreur: ${err.message}` });
+    res.status(500).json({ error: 'Une erreur est survenue. Réessaye.' });
   }
 });
 
@@ -386,7 +423,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.json({ message: 'Candidature supprimée' });
   } catch (err) {
     console.error('Erreur DELETE candidature :', err);
-    res.status(500).json({ error: `Erreur: ${err.message}` });
+    res.status(500).json({ error: 'Une erreur est survenue. Réessaye.' });
   }
 });
 

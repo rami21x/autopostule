@@ -79,11 +79,11 @@ router.post('/cv', authMiddleware, upload.single('cv'), async (req, res) => {
       profile: extracted,
     });
   } catch (err) {
-    console.error('Erreur upload CV :', err);
+    console.error('[Profile] CV upload error:', err.message);
     if (err.message === 'Seuls les fichiers PDF sont acceptés') {
       return res.status(400).json({ error: err.message });
     }
-    res.status(500).json({ error: `Erreur lors de l'analyse du CV: ${err.message}` });
+    res.status(500).json({ error: 'Erreur lors de l\'analyse du CV. Réessaye.' });
   }
 });
 

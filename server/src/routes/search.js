@@ -42,8 +42,8 @@ router.post('/launch', authMiddleware, async (req, res) => {
       offres: results.offres || { exact: [], connexe: [], profil: [] },
     });
   } catch (err) {
-    console.error('Erreur recherche :', err);
-    res.status(500).json({ error: `Erreur lors de la recherche: ${err.message}` });
+    console.error('[Search] Error:', err.message);
+    res.status(500).json({ error: 'Erreur lors de la recherche. Réessaye.' });
   }
 });
 
@@ -84,8 +84,8 @@ router.post('/more', authMiddleware, async (req, res) => {
       offres: results.offres || { exact: [], connexe: [], profil: [] },
     });
   } catch (err) {
-    console.error('Erreur search more :', err);
-    res.status(500).json({ error: `Erreur lors du chargement: ${err.message}` });
+    console.error('[Search] More error:', err.message);
+    res.status(500).json({ error: 'Erreur lors du chargement. Réessaye.' });
   }
 });
 
