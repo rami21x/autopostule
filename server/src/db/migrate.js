@@ -14,6 +14,11 @@ async function migrate() {
     const sql2 = fs.readFileSync(path.join(__dirname, 'migration_002_oauth.sql'), 'utf8');
     await pool.query(sql2);
     console.log('Migration 002 réussie — colonnes OAuth ajoutées.');
+
+    // Migration 003 : email tracking
+    const sql3 = fs.readFileSync(path.join(__dirname, 'migration_003_email_tracking.sql'), 'utf8');
+    await pool.query(sql3);
+    console.log('Migration 003 réussie — email tracking ajouté.');
   } catch (err) {
     console.error('Erreur migration :', err.message);
     process.exit(1);
