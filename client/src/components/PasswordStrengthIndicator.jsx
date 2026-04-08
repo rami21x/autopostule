@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 
 const requirements = [
-  { label: '12 caractères minimum', test: (p) => p.length >= 12 },
-  { label: 'Une majuscule', test: (p) => /[A-Z]/.test(p) },
-  { label: 'Une minuscule', test: (p) => /[a-z]/.test(p) },
-  { label: 'Un chiffre', test: (p) => /[0-9]/.test(p) },
-  { label: 'Un caractère spécial', test: (p) => /[^A-Za-z0-9]/.test(p) },
+  { label: 'Au moins 12 caractères', test: (p) => p.length >= 12 },
+  { label: 'Au moins 1 lettre majuscule (A-Z)', test: (p) => /[A-Z]/.test(p) },
+  { label: 'Au moins 1 lettre minuscule (a-z)', test: (p) => /[a-z]/.test(p) },
+  { label: 'Au moins 1 chiffre (0-9)', test: (p) => /[0-9]/.test(p) },
+  { label: 'Au moins 1 caractère spécial (!@#$...)', test: (p) => /[^A-Za-z0-9]/.test(p) },
 ];
 
 const strengthLevels = [

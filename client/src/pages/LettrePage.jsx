@@ -41,7 +41,7 @@ function SectionEditor({ label, value, onChange, onRegenerate, regenerating, col
                 </svg>
                 IA...
               </>
-            ) : '✨ Réécrire avec l\'IA'}
+            ) : '✨ Réécrire'}
           </button>
         </div>
       </div>
@@ -59,7 +59,7 @@ function SectionEditor({ label, value, onChange, onRegenerate, regenerating, col
                 setInstructions('');
               }
             }}
-            placeholder="Ex: Plus formel, mentionne mon stage chez X, ajoute un chiffre..."
+            placeholder="Par exemple : Plus formel, mentionne mon stage chez X, ajoute un chiffre..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
           <button
@@ -206,7 +206,7 @@ export default function LettrePage() {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(getFullText()).then(() => {
-      setSuccess('Lettre copiée dans le presse-papier !');
+      setSuccess('Lettre copiée ! Prête à coller.');
       setTimeout(() => setSuccess(''), 3000);
     });
   };
@@ -228,7 +228,7 @@ export default function LettrePage() {
         objet,
       });
       setSaved(true);
-      setSuccess('Lettre sauvegardée et candidature créée ! Va sur l\'onglet Suivi.');
+      setSuccess('Parfait ! Ta lettre est sauvegardée. Rends-toi sur l\'onglet Suivi pour envoyer ta candidature.');
     } catch (err) {
       setError(err.response?.data?.error || 'Erreur lors de la sauvegarde.');
     } finally {
@@ -335,7 +335,7 @@ export default function LettrePage() {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center animate-fadeIn">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
           <p className="text-gray-700 font-medium">Rédaction en cours...</p>
-          <p className="text-gray-400 text-sm mt-1">L'IA rédige une lettre personnalisée au format formel pour {targetCompany}</p>
+          <p className="text-gray-400 text-sm mt-1">Rédaction de ta lettre personnalisée pour {targetCompany}...</p>
         </div>
       )}
 
@@ -487,7 +487,7 @@ export default function LettrePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                     </svg>
                   </span>
-                  Mots-clés du poste intégrés
+                  Termes clés du poste utilisés
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
                   {motsCles.map((m, i) => (
@@ -505,7 +505,7 @@ export default function LettrePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-4.06a4.5 4.5 0 00-6.364-6.364L4.5 8.161a4.5 4.5 0 001.242 7.244" />
                     </svg>
                   </span>
-                  Expériences ↔ Poste
+                  Tes expériences liées au poste
                 </h3>
                 <div className="space-y-2">
                   {correspondances.map((c, i) => (

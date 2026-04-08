@@ -313,7 +313,7 @@ export default function CvBuilder({ sector, onComplete }) {
                             Génération...
                           </>
                         ) : (
-                          <>✨ Générer avec l'IA</>
+                          <>✨ Générer automatiquement</>
                         )}
                       </button>
                     )}
@@ -369,7 +369,7 @@ export default function CvBuilder({ sector, onComplete }) {
                     updated[i] = { ...updated[i], description: e.target.value };
                     setExperiences(updated);
                   }}
-                  placeholder="Description (ou clique 'Générer avec l'IA' ci-dessus)"
+                  placeholder="Description (ou clique 'Générer automatiquement' ci-dessus)"
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
@@ -413,8 +413,8 @@ export default function CvBuilder({ sector, onComplete }) {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
               <div>
-                <p className="text-sm font-medium text-purple-700">L'IA analyse les profils du secteur "{sector}"</p>
-                <p className="text-xs text-purple-500">Suggestions basées sur les offres réelles du marché...</p>
+                <p className="text-sm font-medium text-purple-700">Analyse des profils recherchés dans le secteur "{sector}"</p>
+                <p className="text-xs text-purple-500">Basé sur les vrais postes disponibles sur le marché...</p>
               </div>
             </div>
           )}
@@ -424,7 +424,7 @@ export default function CvBuilder({ sector, onComplete }) {
               {/* AI Conseil */}
               {suggestedSkills.conseil && (
                 <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
-                  <p className="text-xs font-medium text-blue-600 mb-1">Conseil IA</p>
+                  <p className="text-xs font-medium text-blue-600 mb-1">Notre conseil</p>
                   <p className="text-sm text-blue-800">{suggestedSkills.conseil}</p>
                 </div>
               )}
@@ -432,7 +432,7 @@ export default function CvBuilder({ sector, onComplete }) {
               {/* Technical skills suggestions */}
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2">Compétences techniques suggérées</p>
-                <p className="text-xs text-gray-400 mb-3">Clique pour sélectionner/désélectionner</p>
+                <p className="text-xs text-gray-400 mb-3">Clique pour ajouter ou retirer</p>
                 <div className="flex flex-wrap gap-2">
                   {suggestedSkills.skills?.map((s, i) => (
                     <button
@@ -453,7 +453,7 @@ export default function CvBuilder({ sector, onComplete }) {
               {/* Trending skills */}
               {suggestedSkills.skills_tendance?.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">Compétences tendance 🔥</p>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Compétences en demande 🔥</p>
                   <div className="flex flex-wrap gap-2">
                     {suggestedSkills.skills_tendance.map((s, i) => (
                       <button
@@ -474,7 +474,7 @@ export default function CvBuilder({ sector, onComplete }) {
 
               {/* Soft skills suggestions */}
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Soft skills suggérés</p>
+                <p className="text-sm font-medium text-gray-700 mb-2">Qualités personnelles suggérées</p>
                 <div className="flex flex-wrap gap-2">
                   {suggestedSkills.soft_skills?.map((s, i) => (
                     <button
@@ -560,7 +560,7 @@ export default function CvBuilder({ sector, onComplete }) {
               disabled={skills.length === 0}
               className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              Choisir un template &rarr;
+              Choisir un modèle &rarr;
             </button>
           </div>
         </div>
@@ -569,7 +569,7 @@ export default function CvBuilder({ sector, onComplete }) {
       {/* STEP 4: Template selection + Download */}
       {step === 4 && (
         <div className="space-y-6 animate-fadeIn">
-          <h3 className="text-lg font-semibold text-gray-900">Choisissez un modèle de CV</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Choisis un modèle de CV</h3>
 
           <div className="grid gap-4 sm:grid-cols-3">
             {TEMPLATES.map(t => (
@@ -603,14 +603,14 @@ export default function CvBuilder({ sector, onComplete }) {
 
           {/* CV Summary */}
           <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-xs font-medium text-gray-500 mb-3">Résumé de votre CV</p>
+            <p className="text-xs font-medium text-gray-500 mb-3">Résumé de ton CV</p>
             <div className="grid gap-2 sm:grid-cols-2 text-sm">
               <div><span className="text-gray-500">Nom :</span> <span className="font-medium">{personalInfo.first_name} {personalInfo.last_name}</span></div>
               <div><span className="text-gray-500">Ville :</span> <span className="font-medium">{personalInfo.city || '—'}</span></div>
               <div><span className="text-gray-500">Formations :</span> <span className="font-medium">{formations.filter(f => f.diplome).length}</span></div>
               <div><span className="text-gray-500">Expériences :</span> <span className="font-medium">{experiences.filter(e => e.poste).length}</span></div>
               <div><span className="text-gray-500">Compétences :</span> <span className="font-medium">{skills.length}</span></div>
-              <div><span className="text-gray-500">Soft skills :</span> <span className="font-medium">{softSkills.length}</span></div>
+              <div><span className="text-gray-500">Qualités personnelles :</span> <span className="font-medium">{softSkills.length}</span></div>
             </div>
           </div>
 

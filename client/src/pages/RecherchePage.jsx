@@ -33,8 +33,8 @@ function ScoreBar({ score }) {
 function AxeBadge({ axe }) {
   const config = {
     exact: { label: 'Correspond exactement', color: 'bg-green-100 text-green-700' },
-    connexe: { label: 'Domaine connexe', color: 'bg-blue-100 text-blue-700' },
-    profil: { label: 'Basé sur le profil', color: 'bg-purple-100 text-purple-700' },
+    connexe: { label: 'Domaine proche', color: 'bg-blue-100 text-blue-700' },
+    profil: { label: 'Adapté à ton profil', color: 'bg-purple-100 text-purple-700' },
   };
   const c = config[axe] || config.exact;
   return <span className={`${c.color} text-[10px] font-medium px-2 py-0.5 rounded-full`}>{c.label}</span>;
@@ -291,7 +291,7 @@ export default function RecherchePage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Recherche intelligente</h1>
         <p className="text-gray-500 mt-1 text-sm">
-          L'IA analyse ton profil et tes préférences pour trouver les meilleures opportunités selon 3 axes.
+          On analyse ton profil et tes préférences pour trouver les meilleures opportunités.
         </p>
       </div>
 
@@ -314,7 +314,7 @@ export default function RecherchePage() {
             <p className="text-sm text-gray-400 mt-0.5">
               {searched
                 ? `${allEntreprises.length} entreprises et ${allOffres.length} offres identifiées`
-                : 'Clique pour lancer l\'analyse IA de ton profil'
+                : 'Clique pour chercher des entreprises et offres adaptées à ton profil'
               }
             </p>
           </div>
@@ -344,7 +344,7 @@ export default function RecherchePage() {
         {loading && (
           <div className="mt-4 bg-blue-50 rounded-xl px-4 py-3 flex items-center gap-3">
             <div className="animate-pulse w-2 h-2 bg-blue-500 rounded-full" />
-            <p className="text-sm text-blue-600">L'IA analyse ton profil selon 3 axes de recherche... Cela peut prendre quelques secondes.</p>
+            <p className="text-sm text-blue-600">Recherche des meilleures opportunités pour toi... Quelques secondes.</p>
           </div>
         )}
       </div>
@@ -412,7 +412,7 @@ export default function RecherchePage() {
               {activeAxe === 'all' ? (
                 <>
                   <AxeSection
-                    title="Correspond exactement à vos préférences"
+                    title="Correspond exactement à tes préférences"
                     description="Même secteur, même type de poste, même localisation"
                     icon="🎯"
                     items={entreprises?.exact}
@@ -428,8 +428,8 @@ export default function RecherchePage() {
                     onSelect={handleSelectTarget}
                   />
                   <AxeSection
-                    title="Basé sur votre profil"
-                    description="Correspond à vos compétences et expériences, indépendamment des préférences"
+                    title="Adapté à ton profil"
+                    description="Correspond à tes compétences et expériences, indépendamment des préférences"
                     icon="👤"
                     items={entreprises?.profil}
                     type="entreprise"
@@ -455,7 +455,7 @@ export default function RecherchePage() {
               {activeAxe === 'all' ? (
                 <>
                   <AxeSection
-                    title="Correspond exactement à vos préférences"
+                    title="Correspond exactement à tes préférences"
                     description="Poste recherché, bon secteur, bonne localisation"
                     icon="🎯"
                     items={offres?.exact}
@@ -471,8 +471,8 @@ export default function RecherchePage() {
                     onSelect={handleSelectTarget}
                   />
                   <AxeSection
-                    title="Basé sur votre profil"
-                    description="Correspond à vos compétences CV, peut être dans un autre secteur ou ville"
+                    title="Adapté à ton profil"
+                    description="Correspond à tes compétences, peut être dans un autre secteur ou ville"
                     icon="👤"
                     items={offres?.profil}
                     type="offre"
@@ -516,7 +516,7 @@ export default function RecherchePage() {
                 </>
               )}
             </button>
-            <p className="text-xs text-gray-400 mt-2">L'IA génère de nouvelles suggestions à chaque clic</p>
+            <p className="text-xs text-gray-400 mt-2">De nouvelles suggestions à chaque clic</p>
           </div>
         </div>
       )}
@@ -531,7 +531,7 @@ export default function RecherchePage() {
           </div>
           <h2 className="text-lg font-semibold text-gray-800 mb-2">Prêt à chercher</h2>
           <p className="text-gray-400 text-sm max-w-md mx-auto mb-6">
-            Assure-toi d'avoir uploadé ton CV et rempli tes préférences dans la page Profil, puis lance la recherche.
+            Assure-toi d'avoir partagé ton CV et rempli tes préférences dans la page Profil, puis lance la recherche.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center text-sm">
             <div className="bg-green-50 rounded-xl px-4 py-3 text-green-700">

@@ -87,12 +87,12 @@ export default function AuthPage() {
             </div>
             <h1 className="text-4xl font-bold mb-4">AutoPostule</h1>
             <p className="text-blue-100 text-lg leading-relaxed max-w-md">
-              L'assistant IA qui t'aide à décrocher ton alternance. CV, recherche, lettres de motivation — tout automatisé.
+              Ton assistant pour décrocher ton alternance. CV, recherche, lettres de motivation — tout est simplifié.
             </p>
           </div>
 
           <div className="space-y-4 mt-8">
-            <Feature icon="📄" text="Analyse intelligente de ton CV" />
+            <Feature icon="📄" text="Analyse automatique de ton CV" />
             <Feature icon="🔍" text="Recherche d'entreprises ciblée" />
             <Feature icon="✉️" text="Lettres de motivation personnalisées" />
             <Feature icon="📊" text="Suivi de tes candidatures" />
@@ -106,7 +106,7 @@ export default function AuthPage() {
         <div className="lg:hidden text-center mb-8">
           <h1 className="text-3xl font-bold text-blue-600 mb-2">AutoPostule</h1>
           <p className="text-gray-500 text-sm max-w-sm">
-            L'assistant IA pour décrocher ton alternance
+            Ton assistant pour décrocher ton alternance
           </p>
         </div>
 
@@ -170,7 +170,7 @@ export default function AuthPage() {
                 id="email"
                 type="email"
                 {...register('email')}
-                placeholder="ton.email@universite.fr"
+                placeholder="exemple@email.com"
                 className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                   errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
                 }`}
@@ -191,7 +191,7 @@ export default function AuthPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   {...register('password')}
-                  placeholder={isLogin ? 'Ton mot de passe' : 'Minimum 12 caractères'}
+                  placeholder={isLogin ? 'Ton mot de passe' : 'Choisis un mot de passe sécurisé'}
                   className={`w-full px-4 py-3 pr-12 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                     errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}
@@ -265,7 +265,7 @@ export default function AuthPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Chargement...
+                  Connexion en cours...
                 </span>
               ) : isLogin ? 'Se connecter' : 'Créer mon compte'}
             </button>

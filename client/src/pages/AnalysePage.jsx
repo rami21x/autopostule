@@ -254,7 +254,7 @@ export default function AnalysePage() {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-12 text-center animate-fadeIn">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-700 font-medium">Analyse en cours...</p>
-          <p className="text-gray-400 text-sm mt-1">L'IA analyse la correspondance entre ton profil et {targetCompany}</p>
+          <p className="text-gray-400 text-sm mt-1">Analyse de la correspondance entre ton profil et {targetCompany}...</p>
         </div>
       )}
 
@@ -268,7 +268,7 @@ export default function AnalysePage() {
               {/* Global score circle */}
               <div className="text-center shrink-0">
                 <ScoreCircle value={analyse.score_detaille?.global || 0} />
-                <p className="text-sm font-medium text-gray-500 mt-2">Score global</p>
+                <p className="text-sm font-medium text-gray-500 mt-2">Compatibilité</p>
               </div>
 
               {/* Detailed scores */}
@@ -357,7 +357,7 @@ export default function AnalysePage() {
 
                 {analyse.infos_entreprise.stack_technique?.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Stack technique</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Technologies utilisées</p>
                     <div className="flex flex-wrap gap-1.5">
                       {analyse.infos_entreprise.stack_technique.map((t, i) => (
                         <span key={i} className="bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full">{t}</span>
@@ -380,7 +380,7 @@ export default function AnalysePage() {
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
                     </svg>
-                    Conseil d'approche
+                    Comment aborder cette candidature
                   </p>
                   <p className="text-sm text-yellow-800">{analyse.infos_entreprise.conseil_approche}</p>
                 </div>

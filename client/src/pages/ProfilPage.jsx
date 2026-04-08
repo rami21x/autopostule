@@ -4,9 +4,9 @@ import api from '../services/api';
 import CvBuilder from '../components/CvBuilder';
 
 const STEPS = [
-  { id: 1, label: 'Préférences', description: 'Que recherchez-vous ?' },
-  { id: 2, label: 'CV', description: 'Soumettez votre CV' },
-  { id: 3, label: 'Profil', description: 'Votre profil extrait' },
+  { id: 1, label: 'Préférences', description: 'Dis-nous ce que tu cherches' },
+  { id: 2, label: 'CV', description: 'Partage ton CV' },
+  { id: 3, label: 'Profil', description: 'Ton profil complet' },
 ];
 
 export default function ProfilPage() {
@@ -117,10 +117,10 @@ export default function ProfilPage() {
       });
       setCvUploaded(true);
       setCvUploadedAt(new Date().toISOString());
-      setSuccess('CV analysé avec succès !');
+      setSuccess('Parfait ! Ton CV a bien été analysé.');
       setCurrentStep(3);
     } catch (err) {
-      const message = err.response?.data?.error || "Erreur lors de l'upload du CV.";
+      const message = err.response?.data?.error || "Erreur lors de l'envoi du CV.";
       setError(message);
     } finally {
       setUploading(false);
@@ -278,9 +278,9 @@ export default function ProfilPage() {
       {currentStep === 1 && (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 animate-fadeIn">
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Que recherchez-vous ?</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Que cherches-tu ?</h2>
             <p className="text-sm text-gray-500 mt-1">
-              Dis-nous ce que tu cherches pour qu'on puisse cibler les meilleures opportunités.
+              Dis-nous ce que tu recherches pour trouver les meilleures opportunités.
             </p>
           </div>
 
@@ -338,7 +338,7 @@ export default function ProfilPage() {
             {/* Mots-clés */}
             <div>
               <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Mots-clés / Compétences recherchées
+                Compétences ou outils recherchés
               </label>
               <input
                 id="keywords"
@@ -348,7 +348,7 @@ export default function ProfilPage() {
                 placeholder="Ex: React, Python, Excel, Gestion de projet (séparés par des virgules)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <p className="text-xs text-gray-400 mt-1.5">Sépare chaque mot-clé par une virgule</p>
+              <p className="text-xs text-gray-400 mt-1.5">Sépare chaque terme par une virgule</p>
             </div>
 
             <div className="flex items-center gap-3 pt-2">
@@ -406,9 +406,9 @@ export default function ProfilPage() {
           {!builderMode ? (
             <>
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Soumettez votre CV</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Partage ton CV</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Notre IA va analyser ton CV et extraire automatiquement tes compétences, formations et expériences.
+                  On va scanner ton CV et en extraire tes compétences, formations et expériences automatiquement.
                 </p>
               </div>
 
@@ -417,7 +417,7 @@ export default function ProfilPage() {
                   <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  CV uploadé le {new Date(cvUploadedAt).toLocaleDateString('fr-FR', {
+                  CV partagé le {new Date(cvUploadedAt).toLocaleDateString('fr-FR', {
                     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
                   })}
                 </div>
@@ -435,7 +435,7 @@ export default function ProfilPage() {
                   <div className="flex flex-col items-center gap-3">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
                     <p className="text-sm text-blue-600 font-semibold">Analyse en cours...</p>
-                    <p className="text-xs text-gray-400">L'IA extrait les informations de ton CV, cela peut prendre quelques secondes</p>
+                    <p className="text-xs text-gray-400">Extraction de tes compétences et expériences, quelques secondes...</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3">
@@ -484,8 +484,8 @@ export default function ProfilPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-purple-700">Je n'ai pas de CV — Construire mon CV avec l'IA</p>
-                    <p className="text-xs text-gray-400 mt-1">L'IA t'aide à créer un CV professionnel avec des suggestions de compétences et des templates</p>
+                    <p className="text-sm font-semibold text-purple-700">Je n'ai pas de CV — Créer mon CV</p>
+                    <p className="text-xs text-gray-400 mt-1">On t'aide à construire un CV professionnel avec des suggestions de compétences et des modèles</p>
                   </div>
                 </div>
               </button>
@@ -514,7 +514,7 @@ export default function ProfilPage() {
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">Construire mon CV</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Remplis tes informations et l'IA te suggère des compétences et génère des descriptions pro.
+                    Remplis tes informations, on te suggère des compétences et des descriptions professionnelles.
                   </p>
                 </div>
                 <button
@@ -552,13 +552,13 @@ export default function ProfilPage() {
                 </svg>
               </div>
               <p className="text-gray-500 text-sm mb-4">
-                Aucun profil extrait. Upload ton CV pour commencer.
+                Aucun profil pour le moment. Partage ton CV pour commencer.
               </p>
               <button
                 onClick={() => setCurrentStep(2)}
                 className="text-sm text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
               >
-                &larr; Aller à l'upload CV
+                &larr; Retour au CV
               </button>
             </div>
           ) : (
@@ -634,7 +634,7 @@ export default function ProfilPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
                         </svg>
                       </span>
-                      Soft skills
+                      Qualités personnelles
                     </h3>
                     <div className="flex flex-wrap gap-1.5">
                       {profile.soft_skills.map((skill, i) => (
