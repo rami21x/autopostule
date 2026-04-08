@@ -81,9 +81,7 @@ export default function AuthPage() {
         <div className="relative z-10 flex flex-col justify-center px-12 text-white">
           <div className="mb-8">
             <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-6 backdrop-blur-sm">
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.841m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-              </svg>
+              <img src="/logo.svg" alt="AutoPostule" className="w-10 h-10" />
             </div>
             <h1 className="text-4xl font-bold mb-4">AutoPostule</h1>
             <p className="text-blue-100 text-lg leading-relaxed max-w-md">
@@ -104,6 +102,7 @@ export default function AuthPage() {
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-12 bg-gray-50">
         {/* Mobile logo */}
         <div className="lg:hidden text-center mb-8">
+          <img src="/logo.svg" alt="AutoPostule" className="w-12 h-12 mx-auto mb-3" />
           <h1 className="text-3xl font-bold text-blue-600 mb-2">AutoPostule</h1>
           <p className="text-gray-500 text-sm max-w-sm">
             Ton assistant pour décrocher ton alternance

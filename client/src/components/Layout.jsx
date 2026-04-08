@@ -25,9 +25,10 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-blue-600">AutoPostule</span>
-            </div>
+            <NavLink to="/profil" className="flex items-center gap-2.5 shrink-0">
+              <img src="/logo.svg" alt="AutoPostule" className="w-8 h-8" />
+              <span className="text-xl font-bold text-blue-600 hidden sm:block">AutoPostule</span>
+            </NavLink>
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center gap-1">
@@ -56,9 +57,9 @@ export default function Layout() {
               <span className="text-sm text-gray-500 hidden sm:block">{user?.email}</span>
               <button
                 onClick={handleLogout}
-                className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50"
+                className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-50 cursor-pointer"
               >
-                Deconnexion
+                Déconnexion
               </button>
             </div>
           </div>
