@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import api from '../services/api';
+import { LettrePDFFromText } from '../components/LettrePDF';
 
 const STATUS_CONFIG = {
   a_envoyer: { label: 'À envoyer', color: 'bg-gray-100 text-gray-700', dot: 'bg-gray-400', icon: '📝' },
@@ -217,9 +219,29 @@ function LettreModal({ candidature, onClose }) {
         </div>
         <p className="text-sm text-gray-500 mb-4">{candidature.company_name} — {candidature.job_title}</p>
         {candidature.lettre_content ? (
-          <div className="bg-gray-50 rounded-xl p-5 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-serif">
-            {candidature.lettre_content}
-          </div>
+          <>
+            <div className="bg-gray-50 rounded-xl p-5 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-serif">
+              {candidature.lettre_content}
+            </div>
+            <div className="flex justify-end mt-4">
+              <PDFDownloadLink
+                document={<LettrePDFFromText content={candidature.lettre_content} />}
+                fileName={`Lettre_${(candidature.company_name || 'candidature').replace(/\s+/g, '_')}.pdf`}
+                className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-900 transition-colors cursor-pointer inline-flex items-center gap-2"
+              >
+                {({ loading: pdfLoading }) =>
+                  pdfLoading ? 'Préparation...' : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                      </svg>
+                      Télécharger en PDF
+                    </>
+                  )
+                }
+              </PDFDownloadLink>
+            </div>
+          </>
         ) : (
           <p className="text-gray-400 text-sm text-center py-4">Aucune lettre sauvegardée.</p>
         )}
@@ -232,19 +254,23 @@ function NotesModal({ candidature, onClose, onSave }) {
   const [notes, setNotes] = useState(candidature.notes || '');
   const [contactEmail, setContactEmail] = useState(candidature.contact_email || '');
   const [delayDays, setDelayDays] = useState(candidature.relance_delay_days || 15);
+  const [applyUrl, setApplyUrl] = useState(candidature.apply_url || '');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSave = async () => {
     setSaving(true);
+    setError('');
     try {
       await api.put(`/candidatures/${candidature.id}`, {
         notes,
         contact_email: contactEmail,
         relance_delay_days: delayDays,
+        apply_url: applyUrl,
       });
       onSave();
-    } catch {
-      // silent
+    } catch (err) {
+      setError(err.response?.data?.error || 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
@@ -252,13 +278,27 @@ function NotesModal({ candidature, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-900">Détails — {candidature.company_name}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl cursor-pointer">&times;</button>
         </div>
 
+        {error && <div className="mb-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>}
+
         <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Lien pour postuler</label>
+            <input
+              type="url"
+              value={applyUrl}
+              onChange={e => setApplyUrl(e.target.value)}
+              placeholder="https://entreprise.com/careers/..."
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-[10px] text-gray-400 mt-1">L'URL où tu dois postuler (site carrière, LinkedIn, etc.)</p>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Email du contact RH</label>
             <input
@@ -425,6 +465,24 @@ function CandidatureCard({ c, onStatusChange, onDelete, onRelance, onLettre, onN
             {c.source === 'spontanee' ? 'Spontanée' : 'Offre'}
           </span>
         </div>
+
+        {/* Apply URL */}
+        {c.apply_url && (
+          <a
+            href={c.apply_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-3 flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl px-3 py-2 transition-colors cursor-pointer group"
+          >
+            <svg className="w-4 h-4 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-4.06a4.5 4.5 0 00-6.364-6.364L4.5 8.161a4.5 4.5 0 001.242 7.244" />
+            </svg>
+            <span className="text-xs font-medium text-blue-700 flex-1 truncate">Postuler sur le site</span>
+            <svg className="w-3.5 h-3.5 text-blue-500 shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </a>
+        )}
 
         {/* Actions */}
         <div className="flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-3">

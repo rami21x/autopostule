@@ -97,10 +97,10 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /candidatures/:id — Mettre à jour les champs d'une candidature (notes, contact_email, delai relance)
+// PUT /candidatures/:id — Mettre à jour les champs d'une candidature (notes, contact_email, delai relance, apply_url)
 router.put('/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { notes, contact_email, relance_delay_days } = req.body;
+  const { notes, contact_email, relance_delay_days, apply_url } = req.body;
 
   try {
     const fields = [];
@@ -125,6 +125,15 @@ router.put('/:id', authMiddleware, async (req, res) => {
         return res.status(400).json({ error: 'Délai de relance entre 1 et 365 jours' });
       }
       fields.push(`relance_delay_days = $${idx++}`); values.push(delay);
+    }
+    if (apply_url !== undefined) {
+      if (apply_url && (typeof apply_url !== 'string' || apply_url.length > 2000)) {
+        return res.status(400).json({ error: 'URL invalide (max 2000 caractères)' });
+      }
+      if (apply_url && !/^https?:\/\//i.test(apply_url)) {
+        return res.status(400).json({ error: 'L\'URL doit commencer par http:// ou https://' });
+      }
+      fields.push(`apply_url = $${idx++}`); values.push(apply_url || null);
     }
 
     if (fields.length === 0) {

@@ -33,8 +33,15 @@ router.post('/generate', authMiddleware, async (req, res) => {
       profile.experiences = JSON.parse(profile.experiences);
     }
 
+    // Récupérer l'email du user
+    const userResult = await pool.query(
+      'SELECT email FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    const userEmail = userResult.rows[0]?.email || '';
+
     // Appel LLM pour générer la lettre
-    const lettre = await generateCoverLetter(profile, target, analyse);
+    const lettre = await generateCoverLetter(profile, target, analyse, userEmail);
 
     res.json({
       message: 'Lettre générée',
