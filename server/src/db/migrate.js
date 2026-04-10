@@ -19,6 +19,11 @@ async function migrate() {
     const sql3 = fs.readFileSync(path.join(__dirname, 'migration_003_email_tracking.sql'), 'utf8');
     await pool.query(sql3);
     console.log('Migration 003 réussie — email tracking ajouté.');
+
+    // Migration 004 : apply_url
+    const sql4 = fs.readFileSync(path.join(__dirname, 'migration_004_apply_url.sql'), 'utf8');
+    await pool.query(sql4);
+    console.log('Migration 004 réussie — apply_url ajouté.');
   } catch (err) {
     console.error('Erreur migration :', err.message);
     process.exit(1);

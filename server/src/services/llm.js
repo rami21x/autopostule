@@ -303,10 +303,10 @@ Retourne UNIQUEMENT un JSON valide :
 {
   "objet": "Objet de la lettre (ex: Candidature en alternance - Développeur Full-Stack)",
   "expediteur": {
-    "nom_prenom": "Prénom Nom",
-    "ville": "Ville",
-    "telephone": "Téléphone",
-    "email": "email (à générer si non fourni: prenom.nom@email.com)"
+    "nom_prenom": "Prénom Nom (valeur fournie)",
+    "ville": "Ville (valeur fournie)",
+    "telephone": "Téléphone (valeur fournie — utilise TEL_EXPEDITEUR)",
+    "email": "Email (valeur fournie — utilise EMAIL_EXPEDITEUR)"
   },
   "destinataire": {
     "entreprise": "Nom de l'entreprise",
@@ -330,6 +330,7 @@ Retourne UNIQUEMENT un JSON valide :
 }
 
 Règles :
+- IMPORTANT : dans le champ "expediteur", tu DOIS utiliser EXACTEMENT les valeurs fournies (nom, ville, téléphone, email). N'invente JAMAIS un numéro de téléphone ni un email. Si une valeur n'est pas fournie, laisse une chaîne vide "".
 - La lettre doit faire entre 300 et 450 mots (corps uniquement, sans en-tête ni signature).
 - Intègre OBLIGATOIREMENT les mots-clés du poste/secteur dans le corps de la lettre.
 - Fais des liens EXPLICITES entre les expériences du candidat et ce que l'entreprise recherche.
@@ -355,10 +356,14 @@ Règles :
 - Garde le même ton et le même style que le reste de la lettre.
 - Retourne UNIQUEMENT le JSON, rien d'autre.`;
 
-async function generateCoverLetter(profile, target, analyse) {
+async function generateCoverLetter(profile, target, analyse, userEmail) {
+  const telephone = profile.phone || '';
+  const email = userEmail || '';
   const profileSummary = `
 Étudiant : ${profile.first_name} ${profile.last_name}
 Ville : ${profile.city || 'Non précisée'}
+TEL_EXPEDITEUR : ${telephone || '(non renseigné — laisse vide)'}
+EMAIL_EXPEDITEUR : ${email || '(non renseigné — laisse vide)'}
 Compétences techniques : ${(profile.skills || []).join(', ') || 'Non précisées'}
 Soft skills : ${(profile.soft_skills || []).join(', ') || 'Non précisés'}
 Formations : ${JSON.stringify(profile.formations || [])}
@@ -397,7 +402,17 @@ Conseil d'approche : ${analyse.infos_entreprise?.conseil_approche || ''}` : '';
     throw new Error('Le LLM n\'a pas retourné de JSON valide');
   }
 
-  return JSON.parse(jsonMatch[0]);
+  const lettre = JSON.parse(jsonMatch[0]);
+
+  // Forcer les vraies valeurs de l'expéditeur (le LLM peut halluciner)
+  lettre.expediteur = {
+    nom_prenom: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+    ville: profile.city || '',
+    telephone: telephone,
+    email: email,
+  };
+
+  return lettre;
 }
 
 async function regenerateLetterSection(section, candidat, cible, instructions) {
