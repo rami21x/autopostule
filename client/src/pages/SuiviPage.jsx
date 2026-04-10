@@ -1,7 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { pdf } from '@react-pdf/renderer';
 import api from '../services/api';
 import { LettrePDFFromText } from '../components/LettrePDF';
+
+async function downloadLettrePDF(doc, filename) {
+  try {
+    const blob = await pdf(doc).toBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (err) {
+    console.error('[PDF] échec téléchargement :', err);
+    alert('Erreur de génération du PDF : ' + (err.message || 'inconnue'));
+  }
+}
 
 const STATUS_CONFIG = {
   a_envoyer: { label: 'À envoyer', color: 'bg-gray-100 text-gray-700', dot: 'bg-gray-400', icon: '📝' },
@@ -224,22 +241,18 @@ function LettreModal({ candidature, onClose }) {
               {candidature.lettre_content}
             </div>
             <div className="flex justify-end mt-4">
-              <PDFDownloadLink
-                document={<LettrePDFFromText content={candidature.lettre_content} />}
-                fileName={`Lettre_${(candidature.company_name || 'candidature').replace(/\s+/g, '_')}.pdf`}
+              <button
+                onClick={() => downloadLettrePDF(
+                  <LettrePDFFromText content={candidature.lettre_content} />,
+                  `Lettre_${(candidature.company_name || 'candidature').replace(/\s+/g, '_')}.pdf`
+                )}
                 className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-900 transition-colors cursor-pointer inline-flex items-center gap-2"
               >
-                {({ loading: pdfLoading }) =>
-                  pdfLoading ? 'Préparation...' : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                      </svg>
-                      Télécharger en PDF
-                    </>
-                  )
-                }
-              </PDFDownloadLink>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Télécharger en PDF
+              </button>
             </div>
           </>
         ) : (
