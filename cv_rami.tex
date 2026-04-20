@@ -1,0 +1,250 @@
+\documentclass[10.5pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fontawesome5}
+\usepackage{tabularx}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{eurosym}
+\usepackage{tikz}
+
+\geometry{
+    left=0cm,
+    right=0cm,
+    top=0cm,
+    bottom=0cm,
+    noheadfoot,
+    nomarginpar
+}
+
+\definecolor{darktext}{RGB}{30, 30, 30}
+\definecolor{graytext}{RGB}{90, 90, 90}
+\definecolor{rulecolor}{RGB}{60, 60, 60}
+\definecolor{sidecolor}{RGB}{238, 238, 238}
+
+\hypersetup{colorlinks=true, urlcolor=graytext}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+\newcommand{\leftsection}[1]{
+    \vspace{7pt}
+    {\small\bfseries\color{darktext}\MakeUppercase{#1}}\\[-5pt]
+    {\color{rulecolor}\rule{\linewidth}{0.7pt}}
+    \vspace{3pt}
+}
+
+\newcommand{\sidesection}[1]{
+    \vspace{7pt}
+    {\small\bfseries\color{darktext}\MakeUppercase{#1}}\\[-5pt]
+    {\color{rulecolor}\rule{\linewidth}{0.7pt}}
+    \vspace{3pt}
+}
+
+\setlist[itemize]{
+    left=0pt,
+    labelsep=5pt,
+    itemsep=0pt,
+    parsep=0pt,
+    topsep=1pt,
+    label={\color{darktext}\textbullet}
+}
+
+\newcommand{\cventry}[4]{
+    \noindent
+    \begin{tabularx}{\linewidth}{@{}X r@{}}
+        \textbf{\small #1} & {\footnotesize\color{graytext}#2} \\
+        {\footnotesize\color{graytext}#3} & \\
+    \end{tabularx}
+    \vspace{1pt}
+    #4
+    \vspace{5pt}
+}
+
+\begin{document}
+\vspace*{-1cm}
+\pagestyle{empty}
+\color{darktext}
+
+\noindent
+% ===== COLONNE GAUCHE BLANCHE (38%) =====
+\colorbox{white}{%
+\begin{minipage}[t][297mm][t]{0.38\textwidth}
+\hspace{0.2cm}
+\begin{minipage}[t]{0.90\linewidth}
+\vspace{0.9cm}
+
+% PHOTO
+\begin{center}
+\begin{tikzpicture}
+    \clip (0,0) rectangle (2.8cm, 3.73cm);
+    \node[anchor=south west] at (0,0) {%
+        \includegraphics[width=2.8cm, height=3.73cm, keepaspectratio=false]{Photo.jpg}};
+    \draw[darktext, line width=1pt] (0.1,0.11) rectangle (2.8cm, 3.72cm);
+\end{tikzpicture}
+\end{center}
+
+\vspace{4pt}
+
+% PROFIL
+\sidesection{Profil}
+{\small
+\'Etudiant-entrepreneur en L3 Informatique, double comp\'etence tech et commerce. Deux ans d'exp\'erience entrepreneuriale~: prospection, n\'egociation, acquisition client. Recherche une alternance en d\'eveloppement commercial.
+}
+
+% FORMATION
+\sidesection{Formation}
+{\small
+\textbf{Master Entrepreneuriat \& Strat\'egie}\\
+{\color{graytext}EM Strasbourg — sept. 2026}\\
+{\color{graytext}en cours d'admission}\\
+{\color{graytext}Alternance — business dev., strat\'egie}
+
+\vspace{5pt}
+\textbf{Licence Informatique} \hfill {\color{graytext}2023--26}\\
+{\color{graytext}Universit\'e de Strasbourg}\\
+{\color{graytext}Algorithmique, BDD, g\'enie logiciel}
+
+\vspace{5pt}
+\textbf{Statut SNEE} \hfill {\color{graytext}2025--Pr\'esent}\\
+{\color{graytext}P\'epite ETENA — Lean Startup}
+
+\vspace{5pt}
+\textbf{Bac G\'en\'eral — Mention AB} \hfill {\color{graytext}2023}\\
+{\color{graytext}Lyc\'ee Intl des Pontonniers}\\
+{\color{graytext}SES, Math\'ematiques}
+}
+
+% COMPÉTENCES
+\sidesection{Comp\'etences}
+{\small
+\textbf{D\'eveloppement commercial}\\[2pt]
+\begin{itemize}
+\item Prospection et acquisition client
+\item N\'egociation B2B et closing
+\item Analyse de march\'e quali/quanti
+\item Segmentation et ciblage (personas)
+\item Pitch commercial et storytelling
+\item Crowdfunding et lev\'ee de fonds
+\end{itemize}
+
+\vspace{5pt}
+\textbf{Outils \& Technique}\\[2pt]
+\begin{itemize}
+\item Excel avanc\'e (reporting, KPI)
+\item Notion, Gantt, outils de pilotage
+\item SQL, mod\'elisation de donn\'ees
+\item Next.js, Git, CI/CD
+\item \LaTeX{} (documentation pro)
+\end{itemize}
+}
+
+% LANGUES
+\sidesection{Langues}
+{\small
+\textbf{Arabe} — Langue maternelle\\
+\textbf{Anglais} — B2 (professionnel)\\
+\textbf{Turc} — C1
+}
+
+% CENTRES D'INTÉRÊT
+\sidesection{Centres d'int\'er\^et}
+{\small
+Tennis $\cdot$ Football $\cdot$ Musculation\\
+D\'eveloppement web $\cdot$ IA $\cdot$ Philosophie
+}
+
+\end{minipage}
+\end{minipage}%
+}%
+% ===== COLONNE DROITE GRISE (62%) =====
+\colorbox{sidecolor}{%
+\begin{minipage}[t][297mm][t]{0.62\textwidth}
+\hspace{0.5cm}
+\begin{minipage}[t]{0.88\linewidth}
+\vspace{1.0cm}
+
+% EN-TÊTE
+{\large\bfseries RAMI HASAN MOHAMAD JASEM}\\[3pt]
+{\small\bfseries\color{graytext}Candidat Master Entrepreneuriat \& Strat\'egie — EM Strasbourg (sept. 2026) $\cdot$ Recherche alternance d\'eveloppement commercial}\\[3pt]
+{\small\color{graytext}
+    \href{mailto:hasanjasem.rami@gmail.com}{hasanjasem.rami@gmail.com}
+    \quad\textbar\quad
+    \faPhone\ 07 81 56 08 27
+    \quad\textbar\quad
+    \faMapMarker*\ Strasbourg\\[2pt]
+    \faLinkedin\ \href{https://www.linkedin.com/in/rami-hasan-mohamad-jasem-a6662a272}{LinkedIn}
+    \quad\textbar\quad
+    \faGlobe\ \href{https://arteral-clo.com}{arteral-clo.com}
+}
+
+\vspace{5pt}
+{\color{rulecolor}\rule{\linewidth}{0.6pt}}
+
+% EXPÉRIENCES
+\leftsection{Exp\'eriences}
+
+\cventry{Fondateur \& CEO — ARTERAL}{Ao\^ut 2025 — Pr\'esent}{Marque de mode philosophique $\cdot$ Strasbourg}{
+\begin{itemize}
+    \item Prospection et closing de partenariats institutionnels~: Facult\'e des Arts de Strasbourg, HEAR, Galerie Bertrand Gillig
+    \item Segmentation client et construction des personas~: \'etude quali/quanti, analyse des comportements d'achat
+    \item \'Elaboration du pitch commercial et de la strat\'egie de lancement~: positionnement premium, \'editions limit\'ees
+    \item Pilotage de campagne de financement (Ulule)~: pr\'evisionnel financier, pricing, seuil de rentabilit\'e
+    \item D\'eveloppement du site e-commerce en autonomie (Next.js, Vercel) et gestion de l'identit\'e de marque
+\end{itemize}
+}
+
+\cventry{Cr\'eateur — AUTOPOSTULE}{2025 — Pr\'esent}{\href{https://autopostule-psi.vercel.app}{autopostule-psi.vercel.app} $\cdot$ Projet entrepreneurial $\cdot$ Strasbourg}{
+\begin{itemize}
+    \item Identification d'un irritant march\'e~: processus de candidature chronophage et g\'en\'erique pour les \'etudiants en alternance/stage
+    \item Conception et d\'eveloppement d'un assistant IA (React, Node.js, PostgreSQL, API Claude) automatis ant l'analyse de profil, la recommandation d'offres et la g\'en\'eration de lettres de motivation personnalis\'ees
+    \item Mise en place du suivi de candidatures complet~: envoi d'emails, relances automatiques, scoring de compatibilit\'e, export CSV
+    \item D\'eploiement en production (Vercel + Railway) et it\'eration continue sur le produit en approche Lean Startup
+\end{itemize}
+}
+
+\cventry{Co-fondateur — CHECK-NIGHT}{Juin — Sept. 2025}{Auto-entreprise d'\'ev\'enementiel $\cdot$ Strasbourg}{
+\begin{itemize}
+    \item Prospection et n\'egociation tarifaire avec 3 \'etablissements strasbourgeois~; 5 \'ev\'enements organis\'es
+    \item Acquisition et fid\'elisation d'une base client~; 4\,000\,\euro{} de CA g\'en\'er\'e en 4 mois
+    \item Coordination d'\'equipe, gestion budg\'etaire et pilotage de la communication digitale
+\end{itemize}
+}
+
+\cventry{Enqu\^eteur terrain — Mission int\'erim}{\'Et\'e 2024}{Strasbourg}{
+\begin{itemize}
+    \item Collecte de donn\'ees terrain par entretiens directs~: \'ecoute active, reformulation, adaptation au profil de l'interlocuteur
+    \item Respect de quotas et reporting quotidien des r\'esultats
+\end{itemize}
+}
+
+\cventry{Agent polyvalent — McDonald's}{\'Et\'e 2023}{Strasbourg}{
+\begin{itemize}
+    \item Relation client en environnement \`a fort volume~: r\'eactivit\'e, sens du service, gestion des situations complexes
+    \item Travail en \'equipe sous contrainte de temps et de qualit\'e
+\end{itemize}
+}
+
+\cventry{Agent de service — Merck (GSF)}{2023 — Pr\'esent}{Usine pharmaceutique $\cdot$ Molsheim (temps partiel)}{
+\begin{itemize}
+    \item Rigueur et autonomie op\'erationnelle en environnement process qualit\'e exigeant
+\end{itemize}
+}
+
+\cventry{Projets informatiques universitaires}{2023 — 2026}{UFR Math\'ematique-Informatique, Universit\'e de Strasbourg}{
+\begin{itemize}
+    \item Gestion de projet agile (Scrum)~: planification, r\'epartition des t\^aches, livrables en \'equipe
+    \item SQL avanc\'e et reporting~: mod\'elisation de donn\'ees, analyse applicable aux outils CRM et tableaux de bord commerciaux
+\end{itemize}
+}
+
+\end{minipage}
+\end{minipage}%
+}
+
+\end{document}
