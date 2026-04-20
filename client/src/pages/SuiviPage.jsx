@@ -485,13 +485,19 @@ function CandidatureCard({ c, onStatusChange, onDelete, onRelance, onLettre, onN
             href={c.apply_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-3 flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl px-3 py-2 transition-colors cursor-pointer group"
+            className={`mb-3 flex items-center gap-2 ${c.apply_url.includes('google.com/search') ? 'bg-amber-50 hover:bg-amber-100 border-amber-200' : 'bg-blue-50 hover:bg-blue-100 border-blue-200'} border rounded-xl px-3 py-2 transition-colors cursor-pointer group`}
           >
-            <svg className="w-4 h-4 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-4.06a4.5 4.5 0 00-6.364-6.364L4.5 8.161a4.5 4.5 0 001.242 7.244" />
+            <svg className={`w-4 h-4 ${c.apply_url.includes('google.com/search') ? 'text-amber-600' : 'text-blue-600'} shrink-0`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              {c.apply_url.includes('google.com/search') ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-4.06a4.5 4.5 0 00-6.364-6.364L4.5 8.161a4.5 4.5 0 001.242 7.244" />
+              )}
             </svg>
-            <span className="text-xs font-medium text-blue-700 flex-1 truncate">Postuler sur le site</span>
-            <svg className="w-3.5 h-3.5 text-blue-500 shrink-0 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <span className={`text-xs font-medium ${c.apply_url.includes('google.com/search') ? 'text-amber-700' : 'text-blue-700'} flex-1 truncate`}>
+              {c.apply_url.includes('google.com/search') ? 'Trouver où postuler' : 'Postuler sur le site'}
+            </span>
+            <svg className={`w-3.5 h-3.5 ${c.apply_url.includes('google.com/search') ? 'text-amber-500' : 'text-blue-500'} shrink-0 group-hover:translate-x-0.5 transition-transform`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
             </svg>
           </a>

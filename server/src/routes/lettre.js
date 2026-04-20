@@ -105,12 +105,13 @@ router.post('/save', authMiddleware, async (req, res) => {
     let candidatureId;
 
     if (candidatureResult.rows.length === 0) {
-      // Créer la candidature
+      const searchQuery = encodeURIComponent(`${companyName} recrutement ${jobTitle}`);
+      const autoApplyUrl = `https://www.google.com/search?q=${searchQuery}`;
       const insertResult = await pool.query(
-        `INSERT INTO candidatures (user_id, company_name, job_title, score, status, source)
-         VALUES ($1, $2, $3, $4, 'a_envoyer', $5)
+        `INSERT INTO candidatures (user_id, company_name, job_title, score, status, source, apply_url)
+         VALUES ($1, $2, $3, $4, 'a_envoyer', $5, $6)
          RETURNING id`,
-        [req.user.id, companyName, jobTitle, score, target?.type || 'spontanee']
+        [req.user.id, companyName, jobTitle, score, target?.type || 'spontanee', autoApplyUrl]
       );
       candidatureId = insertResult.rows[0].id;
     } else {
